@@ -1,0 +1,104 @@
+package com.bom.zcloudbackend.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.bom.zcloudbackend.common.RespResult;
+import com.bom.zcloudbackend.common.util.DateUtil;
+import com.bom.zcloudbackend.entity.User;
+import com.bom.zcloudbackend.mapper.UserMapper;
+import com.bom.zcloudbackend.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class UserServiceImpl implements UserService {
+
+    @Resource
+    UserMapper userMapper;
+
+    @Override
+    public RespResult<String> registerUser(User user) {
+//        String telephone = user.getTelephone();
+        String password = user.getPassword();
+        String username = user.getUsername();
+
+//        if (!StringUtils.hasLength(telephone)) {
+//            return RespResult.fail().message("手机号不能为空");
+//        }
+        if (!StringUtils.hasLength(password)) {
+            return RespResult.fail().message("密码不能为为空");
+        }
+        if (!StringUtils.hasLength(username)) {
+            return RespResult.fail().message("用户名不能为空");
+        }
+        if (isExistUsername(username)) {
+            return RespResult.fail().message("用户名已存在");
+        }
+//        if (isExistPhone(telephone)) {
+//            return RespResult.fail().message("该手机号已被注册");
+//        }
+
+        String salt = UUID.randomUUID().toString().replace("-", "").substring(15);
+        String ps = password + salt;
+        String newPassword = DigestUtils.md5DigestAsHex(ps.getBytes());
+
+        user.setSalt(salt);
+        user.setPassword(newPassword);
+        user.setRegisterTime(DateUtil.getCurrentTime());
+
+        int result = userMapper.insert(user);
+        if (result == 1) {
+            return RespResult.success();
+        } else {
+            return RespResult.fail().message("注册失败，请检查注册信息");
+        }
+    }
+
+    private boolean isExistPhone(String telephone) {
+        LambdaQueryWrapper<User> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(User::getTelephone, telephone);
+        List<User> list = userMapper.selectList(lambdaQueryWrapper);
+        if (list != null && !list.isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isExistUsername(String username) {
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username);
+        List<User> list = userMapper.selectList(wrapper);
+        if (list != null && !list.isEmpty()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public RespResult<User> login(User user) {
+        String username = user.getUsername();
+        String password = user.getPassword();
+
+        LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(User::getUsername, username);
+        User saveUser = userMapper.selectOne(wrapper);
+        String salt = saveUser.getSalt();
+        String ps = password + salt;
+        String newPassword = DigestUtils.md5DigestAsHex(ps.getBytes());
+
+        if (newPassword.equals(saveUser.getPassword())) {
+            saveUser.setPassword("");
+            saveUser.setSalt("");
+            return RespResult.success().data(saveUser);
+        } else {
+            return RespResult.fail().message("用户名或者密码错误");
+        }
+    }
+}
