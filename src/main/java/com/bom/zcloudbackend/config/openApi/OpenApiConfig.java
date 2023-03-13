@@ -25,7 +25,7 @@ public class OpenApiConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-            .title("zcloud API")
+            .title("zcloud")
             .description("基于SpringBoot和Vue的在线网盘系统")
             .version("1.0")
             .build();
