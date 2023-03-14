@@ -62,8 +62,6 @@ public class UserController {
             ObjectMapper mapper = new ObjectMapper();
             jwt = jwtUtil.createJWT(mapper.writeValueAsString(loginResult.getData()));
         } catch (Exception e) {
-            System.out.println(jwt);
-            System.out.println(1);
             return RespResult.fail().message("登录失败");
         }
         loginVO.setToken(jwt);

@@ -1,12 +1,17 @@
 package com.bom.zcloudbackend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bom.zcloudbackend.common.RespResult;
 import com.bom.zcloudbackend.common.util.DateUtil;
+import com.bom.zcloudbackend.common.util.JWTUtil;
 import com.bom.zcloudbackend.entity.User;
 import com.bom.zcloudbackend.mapper.UserMapper;
 import com.bom.zcloudbackend.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Claims;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
@@ -15,11 +20,15 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Resource
     UserMapper userMapper;
+
+    @Resource
+    JWTUtil jwtUtil;
 
     @Override
     public RespResult<String> registerUser(User user) {
@@ -100,5 +109,23 @@ public class UserServiceImpl implements UserService {
         } else {
             return RespResult.fail().message("用户名或者密码错误");
         }
+    }
+
+    @Override
+    public User getUserByToken(String token) {
+        User tokenUserInfo = null;
+
+        Claims claims = null;
+        try {
+            claims = jwtUtil.parseJWT(token);
+            String subject = claims.getSubject();
+            ObjectMapper objectMapper = new ObjectMapper();
+            tokenUserInfo = objectMapper.readValue(subject, User.class);
+        } catch (Exception e) {
+            log.error("解码异常");
+            return null;
+        }
+        return tokenUserInfo;
+
     }
 }
