@@ -1,6 +1,6 @@
 package com.bom.zcloudbackend.service;
 
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.bom.zcloudbackend.common.RespResult;
 import com.bom.zcloudbackend.entity.User;

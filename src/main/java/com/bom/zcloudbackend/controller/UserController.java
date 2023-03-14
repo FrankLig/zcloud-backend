@@ -14,10 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.Map;
 
-@Api(tags = "{ 后台 | 用户 }")
+
+@Api(tags = "用户")
 @Slf4j
 @RestController
 @RequestMapping("/user")

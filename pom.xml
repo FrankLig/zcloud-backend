@@ -108,6 +108,13 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <!--指定资源的位置（xml放在resources下，可以不用指定）-->
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
     </build>
 
 </project>
