@@ -32,4 +32,7 @@ public class User {
 
     @ApiModelProperty("注册时间")
     private String registerTime;
+
+    @ApiModelProperty("加密密钥")
+    private String encryptKey;
 }

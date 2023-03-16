@@ -1,5 +1,6 @@
 package com.bom.zcloudbackend;
 
+import com.bom.zcloudbackend.common.util.EncryptUserUtil;
 import com.bom.zcloudbackend.config.jwt.JwtProperties;
 import com.bom.zcloudbackend.entity.User;
 import com.bom.zcloudbackend.mapper.UserMapper;
@@ -9,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest
 class ZcloudBackendApplicationTests {
@@ -19,12 +21,16 @@ class ZcloudBackendApplicationTests {
     @Resource
     private JwtProperties jwtProperties;
 
+    @Resource
+    private EncryptUserUtil encryptUserUtil;
+
+
     @Test
     void contextLoads() {
     }
 
     @Test
-    public void test01(){
+    public void test01() {
         User user = new User();
         user.setUsername("frank");
         user.setPassword("password");
@@ -34,6 +40,8 @@ class ZcloudBackendApplicationTests {
         System.out.println("查询结果:");
         users.forEach(System.out::println);
     }
+
+
 
 
 }

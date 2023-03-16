@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bom.zcloudbackend.common.RespResult;
 import com.bom.zcloudbackend.common.util.DateUtil;
+import com.bom.zcloudbackend.common.util.EncryptUserUtil;
 import com.bom.zcloudbackend.common.util.JWTUtil;
 import com.bom.zcloudbackend.entity.User;
 import com.bom.zcloudbackend.mapper.UserMapper;
@@ -25,10 +26,13 @@ import java.util.UUID;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
     @Resource
-    UserMapper userMapper;
+    private UserMapper userMapper;
 
     @Resource
-    JWTUtil jwtUtil;
+    private JWTUtil jwtUtil;
+
+    @Resource
+    private EncryptUserUtil encryptUserUtil;
 
     @Override
     public RespResult<String> registerUser(User user) {
@@ -55,6 +59,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String salt = UUID.randomUUID().toString().replace("-", "").substring(15);
         String ps = password + salt;
         String newPassword = DigestUtils.md5DigestAsHex(ps.getBytes());
+
+        //生成加密key并加密存储到数据库
+        String userKey = UUID.randomUUID().toString();
+        try {
+            String aesEncrypt = EncryptUserUtil.aesEncrypt(userKey);
+            user.setEncryptKey(aesEncrypt);
+        } catch (Exception e) {
+            return RespResult.fail().message("生成加密密钥失败");
+        }
 
         user.setSalt(salt);
         user.setPassword(newPassword);
@@ -100,6 +113,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User saveUser = userMapper.selectOne(wrapper);
         String salt = saveUser.getSalt();
         String ps = password + salt;
+        //md5算法不可逆
         String newPassword = DigestUtils.md5DigestAsHex(ps.getBytes());
 
         if (newPassword.equals(saveUser.getPassword())) {
