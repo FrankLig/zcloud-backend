@@ -24,4 +24,13 @@ public class File {
 
     @ApiModelProperty("文件大小")
     private Long fileSize;
+
+    @ApiModelProperty(name = "存储类型", notes = "0-本地存储，1-阿里云，2-FastDFS")
+    private Integer storageType;
+
+    @ApiModelProperty("md5唯一标识")
+    private String identifier;
+
+    @ApiModelProperty(value = "引用数量", notes = "上传文件服务器已存在，pc+1,删除-1,大于0文件逻辑删除，等于0彻底物理删除")
+    private Integer pointCount;
 }

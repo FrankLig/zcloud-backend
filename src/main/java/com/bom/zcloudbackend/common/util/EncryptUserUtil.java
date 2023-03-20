@@ -1,8 +1,6 @@
 package com.bom.zcloudbackend.common.util;
 
-import lombok.Data;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
