@@ -99,4 +99,9 @@ public class FileTransferServiceImpl implements FileTransferService {
         uploadFile.setTimeStampName(file.getTimeStampName());
         downloader.download(response, uploadFile);
     }
+
+    @Override
+    public Long selectStorageSizeByUserId(Long userId) {
+        return userFileMapper.selectStorageSizeByUserId(userId);
+    }
 }

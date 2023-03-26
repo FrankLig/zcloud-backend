@@ -6,6 +6,7 @@ import com.bom.zcloudbackend.common.util.FileUtil;
 import com.bom.zcloudbackend.dto.DownloadFileDTO;
 import com.bom.zcloudbackend.dto.UploadFileDTO;
 import com.bom.zcloudbackend.entity.File;
+import com.bom.zcloudbackend.entity.Storage;
 import com.bom.zcloudbackend.entity.User;
 import com.bom.zcloudbackend.entity.UserFile;
 import com.bom.zcloudbackend.service.FileService;
@@ -39,7 +40,7 @@ public class FileTransferController {
     private FileTransferService fileTransferService;
 
     @ApiOperation(value = "极速上传", notes = "检验md5判断文件是否存在，存在则直接上传返回skip-true,不存在则返回skip-false早调用该接口post方法")
-    @GetMapping ("/uploadFile")
+    @GetMapping("/uploadFile")
     public RespResult<UploadFileVO> uploadFileSpeed(UploadFileDTO uploadFileDTO, @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
         if (sessionUser == null) {
@@ -92,5 +93,14 @@ public class FileTransferController {
     @RequestMapping("/downloadfile")
     public void downloadFile(HttpServletResponse response, DownloadFileDTO downloadFileDTO) {
         fileTransferService.downloadFile(response, downloadFileDTO);
+    }
+
+    @ApiOperation("获取存储信息")
+    @GetMapping("/getStorage")
+    public RespResult<Long> getStorage(@RequestHeader("token") String token) {
+        User sessionUser = userService.getUserByToken(token);
+        Storage storage = new Storage();
+        Long size = fileTransferService.selectStorageSizeByUserId(sessionUser.getUserId());
+        return RespResult.success().data(size);
     }
 }

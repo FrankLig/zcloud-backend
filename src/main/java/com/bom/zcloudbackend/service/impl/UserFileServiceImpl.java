@@ -13,7 +13,9 @@ import com.bom.zcloudbackend.mapper.RecoveryFileMapper;
 import com.bom.zcloudbackend.mapper.UserFileMapper;
 import com.bom.zcloudbackend.service.UserFileService;
 import com.bom.zcloudbackend.vo.UserFileListVO;
+import com.github.xiaoymin.knife4j.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -153,5 +155,59 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
                 });
             }
         }).start();
+    }
+
+    @Override
+    public List<UserFile> selectFilePathTreeByUserId(Long userId) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getUserId, userId)
+            .eq(UserFile::getIsDir, 1);
+        return userFileMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public void updateFilepathByFilepath(String oldfilePath, String newfilePath, String fileName, String extendName,
+        Long userId) {
+        if ("null".equals(extendName)) {
+            extendName = null;
+        }
+        LambdaUpdateWrapper<UserFile> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        lambdaUpdateWrapper.set(UserFile::getFilePath, newfilePath)
+            .eq(UserFile::getFilePath, oldfilePath)
+            .eq(UserFile::getFileName, fileName)
+            .eq(UserFile::getUserId, userId);
+        if (StringUtils.isNotEmpty(extendName)) {
+            lambdaUpdateWrapper.eq(UserFile::getExtendName, extendName);
+        } else {
+            lambdaUpdateWrapper.isNull(UserFile::getExtendName);
+        }
+        userFileMapper.update(null, lambdaUpdateWrapper);
+        //移动子目录
+        oldfilePath = oldfilePath + fileName + "/";
+        newfilePath = newfilePath + fileName + "/";
+
+        oldfilePath = oldfilePath.replace("\\", "\\\\\\\\");
+        oldfilePath = oldfilePath.replace("'", "\\'");
+        oldfilePath = oldfilePath.replace("%", "\\%");
+        oldfilePath = oldfilePath.replace("_", "\\_");
+
+        if (extendName == null) {
+            userFileMapper.updateFilepathByFilepath(oldfilePath, newfilePath, userId);
+        }
+    }
+
+    @Override
+    public List<UserFile> selectUserFileByNameAndPath(String fileName, String filePath, Long userId) {
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getFileName, fileName)
+            .eq(UserFile::getFilePath, filePath)
+            .eq(UserFile::getUserId, userId)
+            .eq(UserFile::getDeleteTag, 0);
+        return userFileMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public void replaceUserFilePath(String filePath, String oldFilePath, Long userId) {
+        userFileMapper.replaceFilePath(filePath,oldFilePath,userId);
     }
 }

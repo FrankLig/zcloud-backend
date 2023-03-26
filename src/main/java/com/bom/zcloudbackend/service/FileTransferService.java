@@ -12,4 +12,6 @@ public interface FileTransferService {
 
     void downloadFile(HttpServletResponse response, DownloadFileDTO downloadFileDTO);
 
+    Long selectStorageSizeByUserId(Long userId);
+
 }

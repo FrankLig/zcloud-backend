@@ -2,17 +2,17 @@ package com.bom.zcloudbackend.controller;
 
 import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.bom.zcloudbackend.common.RespResult;
 import com.bom.zcloudbackend.common.util.DateUtil;
-import com.bom.zcloudbackend.dto.BatchDeleteFileDTO;
-import com.bom.zcloudbackend.dto.CreateFileDTO;
-import com.bom.zcloudbackend.dto.DeleteFileDTO;
-import com.bom.zcloudbackend.dto.UserFileListDTO;
+import com.bom.zcloudbackend.dto.*;
+import com.bom.zcloudbackend.entity.File;
 import com.bom.zcloudbackend.entity.User;
 import com.bom.zcloudbackend.entity.UserFile;
 import com.bom.zcloudbackend.service.FileService;
 import com.bom.zcloudbackend.service.UserFileService;
 import com.bom.zcloudbackend.service.UserService;
+import com.bom.zcloudbackend.vo.TreeNodeVO;
 import com.bom.zcloudbackend.vo.UserFileListVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,9 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Api(tags = "文件")
 @Slf4j
@@ -130,4 +128,156 @@ public class FileController {
         }
         return RespResult.success().message("批量删除文件成功");
     }
+
+
+    @ApiOperation(value = "获取文件树", notes = "移动文件时需要用来展示目录")
+    @GetMapping("/getFileTree")
+    public RespResult<TreeNodeVO> getFileTree(@RequestHeader("token") String token) {
+        RespResult<TreeNodeVO> result = new RespResult<>();
+        UserFile userFile = new UserFile();
+        User sessionUser = userService.getUserByToken(token);
+        userFile.setUserId(sessionUser.getUserId());
+
+        List<UserFile> filePathList = userFileService.selectFilePathTreeByUserId(sessionUser.getUserId());
+        TreeNodeVO resultTreeNodeVO = new TreeNodeVO();
+        resultTreeNodeVO.setLabel("/");
+
+        for (int i = 0; i < filePathList.size(); i++) {
+            String filePath = filePathList.get(i).getFilePath() + filePathList.get(i).getFileName() + "/";
+
+            Queue<String> queue = new ArrayDeque<>();
+
+            String[] strArr = filePath.split("/");
+            for (int j = 0; j < strArr.length; j++) {
+                if (!"".equals(strArr[j]) && strArr[j] != null) {
+                    queue.add(strArr[j]);
+                }
+            }
+            if (queue.isEmpty()) {
+                continue;
+            }
+            resultTreeNodeVO = insertTreeNode(resultTreeNodeVO, "/", queue);
+        }
+        result.setSuccess(true);
+        result.setData(resultTreeNodeVO);
+        return result;
+    }
+
+    @ApiOperation(value = "移动文件", notes = "可以移动文件或目录")
+    @PostMapping("/movefile")
+    public RespResult<String> moveFile(@RequestBody MoveFileDTO moveFileDTO, @RequestHeader("token") String token) {
+        User sessionUser = userService.getUserByToken(token);
+        String oldFilePath = moveFileDTO.getOldFilePath();
+        String newFilePath = moveFileDTO.getFilePath();
+        String fileName = moveFileDTO.getFileName();
+        String extendName = moveFileDTO.getExtendName();
+
+        userFileService.updateFilepathByFilepath(oldFilePath, newFilePath, fileName, extendName,
+            sessionUser.getUserId());
+        return RespResult.success();
+    }
+
+    @ApiOperation(value = "批量移动文件", notes = "可以移动多个文件或者目录")
+    @PostMapping("/batchmovefile")
+    public RespResult<String> batchMoveFile(@RequestBody BatchMoveFileDTO batchMoveFileDto,
+        @RequestHeader("token") String token) {
+
+        User sessionUser = userService.getUserByToken(token);
+        String files = batchMoveFileDto.getFiles();
+        String newfilePath = batchMoveFileDto.getFilePath();
+        List<UserFile> userFiles = JSON.parseArray(files, UserFile.class);
+
+        for (UserFile userFile : userFiles) {
+            userFileService.updateFilepathByFilepath(userFile.getFilePath(), newfilePath, userFile.getFileName(),
+                userFile.getExtendName(), sessionUser.getUserId());
+        }
+
+        return RespResult.success().data("批量移动文件成功");
+
+    }
+
+    public RespResult<String> renameFile(@RequestBody RenameFileDTO renameFileDTO,
+        @RequestHeader("token") String token) {
+        User sessionUser = userService.getUserByToken(token);
+        UserFile userFile = userFileService.getById(renameFileDTO.getUserFileId());
+        List<UserFile> userFiles = userFileService.selectUserFileByNameAndPath(renameFileDTO.getFileName(),
+            userFile.getFilePath(),
+            sessionUser.getUserId());
+        if (userFiles != null && !userFiles.isEmpty()) {
+            return RespResult.fail().message("已存在同名文件");
+        }
+        if (1 == userFile.getIsDir()) {
+            LambdaUpdateWrapper<UserFile> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(UserFile::getFileName, renameFileDTO.getFileName())
+                .set(UserFile::getUploadTime, DateUtil.getCurrentTime())
+                .eq(UserFile::getUserFileId, renameFileDTO.getUserFileId());
+            userFileService.update(updateWrapper);
+            userFileService.replaceUserFilePath(userFile.getFilePath() + renameFileDTO.getFileName() + "/",
+                userFile.getFilePath() + userFile.getFileName() + "/", sessionUser.getUserId());
+
+        } else {
+            File file = fileService.getById(userFile.getFileId());
+            LambdaUpdateWrapper<UserFile> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+            lambdaUpdateWrapper.set(UserFile::getFileName, renameFileDTO.getFileName())
+                .set(UserFile::getUploadTime, DateUtil.getCurrentTime())
+                .eq(UserFile::getUserFileId, renameFileDTO.getUserFileId());
+            userFileService.update(lambdaUpdateWrapper);
+        }
+        return RespResult.success();
+    }
+
+    public TreeNodeVO insertTreeNode(TreeNodeVO treeNode, String filePath, Queue<String> nodeNameQueue) {
+        List<TreeNodeVO> childTreeNodes = treeNode.getChild();
+        String currentTreeNode = nodeNameQueue.peek();
+        if (currentTreeNode == null) {
+            return treeNode;
+        }
+
+        HashMap<String, String> map = new HashMap<>();
+        filePath = filePath + currentTreeNode + "/";
+        map.put("filePath", filePath);
+
+        if (!isExistPath(childTreeNodes, currentTreeNode)) {
+            TreeNodeVO resultTreeNode = new TreeNodeVO();
+
+            resultTreeNode.setAttributes(map);
+            resultTreeNode.setLabel(nodeNameQueue.poll());
+            childTreeNodes.add(resultTreeNode);
+        } else {
+            nodeNameQueue.poll();
+        }
+
+        if (!nodeNameQueue.isEmpty()) {
+            for (int i = 0; i < childTreeNodes.size(); i++) {
+                TreeNodeVO childTreeNode = childTreeNodes.get(i);
+                if (currentTreeNode.equals(childTreeNode.getLabel())) {
+                    childTreeNode = insertTreeNode(childTreeNode, filePath, nodeNameQueue);
+                    childTreeNodes.remove(i);
+                    childTreeNodes.add(childTreeNode);
+                    treeNode.setChild(childTreeNodes);
+                }
+            }
+        } else {
+            treeNode.setChild(childTreeNodes);
+        }
+        return treeNode;
+    }
+
+    public boolean isExistPath(List<TreeNodeVO> childrenTreeNodes, String path) {
+        boolean isExistPath = false;
+
+        try {
+            for (int i = 0; i < childrenTreeNodes.size(); i++) {
+                if (path.equals(childrenTreeNodes.get(i).getLabel())) {
+                    isExistPath = true;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return isExistPath;
+    }
+
+
 }
