@@ -12,4 +12,9 @@ public interface UserFileService extends IService<UserFile> {
     List<UserFileListVO> getUserFileByFilePath(String filePath,Long userId,Long currentPage,Long pageCount);
 
     Map<String, Object> getUserFileByType(int fileType, Long currentPage, Long pageCount, Long userId);
+
+    void deleteUserFile(Long userFileId, Long sessionUserId);
+
+    List<UserFile> selectFileTreeListLikeFilePath(String filePath, long userId);
+
 }

@@ -39,7 +39,7 @@ public class FileTransferController {
     private FileTransferService fileTransferService;
 
     @ApiOperation(value = "极速上传", notes = "检验md5判断文件是否存在，存在则直接上传返回skip-true,不存在则返回skip-false早调用该接口post方法")
-    @GetMapping("/uploadFile")
+    @GetMapping ("/uploadFile")
     public RespResult<UploadFileVO> uploadFileSpeed(UploadFileDTO uploadFileDTO, @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
         if (sessionUser == null) {
@@ -62,6 +62,7 @@ public class FileTransferController {
                 userFile.setExtendName(FileUtil.getFileExtendName(fileName));
                 userFile.setIsDir(0);
                 userFile.setUploadTime(DateUtil.getCurrentTime());
+                userFile.setDeleteTag(0);
                 userFileService.save(userFile);
                 uploadFileVO.setSkipUpload(true);
             } else {

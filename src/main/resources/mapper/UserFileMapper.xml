@@ -15,6 +15,7 @@
             <if test="userfile.extendName!=null">
                 and a.extendName=#{userfile.extendName}
             </if>
+            and a.deleteTag = 0
         </where>
         order by isDir desc
         limit #{beginCount},#{pageCount}
@@ -28,6 +29,7 @@
             #{fileName}
         </foreach>
         and userId = #{userId}
+        and deleteTag = 0
     </sql>
 
     <sql id="selectByNotExtendName">
@@ -37,6 +39,7 @@
             #{fileName}
         </foreach>
         and userId = #{userId}
+        and deleteTag = 0
     </sql>
 
     <select id="selectFileByExtendName" parameterType="com.bom.zcloudbackend.entity.UserFile"

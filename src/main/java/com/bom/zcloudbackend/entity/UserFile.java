@@ -37,4 +37,11 @@ public class UserFile {
 
     @ApiModelProperty("上传时间")
     private String uploadTime;
+
+    @ApiModelProperty(value = "删除标志",notes = "0-未删除，1-已删除")
+    private Integer deleteTag;
+
+    private String deleteTime;
+
+    private String deleteBatchNum;
 }

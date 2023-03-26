@@ -1,9 +1,12 @@
 package com.bom.zcloudbackend.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.bom.zcloudbackend.common.RespResult;
 import com.bom.zcloudbackend.common.util.DateUtil;
+import com.bom.zcloudbackend.dto.BatchDeleteFileDTO;
 import com.bom.zcloudbackend.dto.CreateFileDTO;
+import com.bom.zcloudbackend.dto.DeleteFileDTO;
 import com.bom.zcloudbackend.dto.UserFileListDTO;
 import com.bom.zcloudbackend.entity.User;
 import com.bom.zcloudbackend.entity.UserFile;
@@ -60,6 +63,7 @@ public class FileController {
         userFile.setFilePath(createFileDTO.getFilePath());
         userFile.setIsDir(1);
         userFile.setUploadTime(DateUtil.getCurrentTime());
+        userFile.setDeleteTag(0);
 
         userFileService.save(userFile);
         return RespResult.success();
@@ -67,7 +71,7 @@ public class FileController {
     }
 
     @ApiOperation(value = "获取文件列表", notes = "获取文件列表，用于前端文件列表展示")
-    @GetMapping("/getFileList")
+    @GetMapping("/getUserFileList")
     public RespResult<UserFileListVO> getUserFileList(UserFileListDTO userFileListDTO,
         @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
@@ -81,7 +85,8 @@ public class FileController {
 
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UserFile::getUserId, sessionUser.getUserId())
-            .eq(UserFile::getFilePath, userFileListDTO.getFilePath());
+            .eq(UserFile::getFilePath, userFileListDTO.getFilePath())
+            .eq(UserFile::getDeleteTag, 0);
         int total = userFileService.count(queryWrapper);
 
         HashMap<String, Object> map = new HashMap<>();
@@ -91,7 +96,7 @@ public class FileController {
         return RespResult.success().data(map);
     }
 
-    @ApiOperation(value = "分类获取文件",notes = "根据文件类型查看文件")
+    @ApiOperation(value = "分类获取文件", notes = "根据文件类型查看文件")
     @GetMapping("/selectFileByType")
     public RespResult<List<Map<String, Object>>> selectFileByType(int fileType, Long currentPage, Long pageCount,
         @RequestHeader("token") String token) {
@@ -104,5 +109,25 @@ public class FileController {
         Map<String, Object> map = userFileService.getUserFileByType(fileType, currentPage, pageCount,
             userId);
         return RespResult.success().data(map);
+    }
+
+    @ApiOperation(value = "删除文件", notes = "删除文件或目录")
+    @PostMapping("/deleteFile")
+    public RespResult deleteFile(@RequestBody DeleteFileDTO deleteFileDTO, @RequestHeader("token") String token) {
+        User sessionUser = userService.getUserByToken(token);
+        userFileService.deleteUserFile(deleteFileDTO.getUserFileId(), sessionUser.getUserId());
+        return RespResult.success();
+    }
+
+    @ApiOperation("批量删除文件")
+    @PostMapping("/batchDeleteFile")
+    public RespResult deleteImageByIds(@RequestBody BatchDeleteFileDTO batchDeleteFileDTO,
+        @RequestHeader("token") String token) {
+        User sessionUser = userService.getUserByToken(token);
+        List<UserFile> userFiles = JSON.parseArray(batchDeleteFileDTO.getFiles(), UserFile.class);
+        for (UserFile userFile : userFiles) {
+            userFileService.deleteUserFile(userFile.getUserFileId(), sessionUser.getUserId());
+        }
+        return RespResult.success().message("批量删除文件成功");
     }
 }
