@@ -69,8 +69,9 @@ public class UserController {
 
     @ApiOperation(value = "登录校验", notes = "校验token有效性")
     @GetMapping("/checkUserLoginInfo")
-    public RespResult<User> checkToken(@RequestHeader("token") String token) {
-
+    public RespResult<User> checkToken(@RequestHeader(value = "token",required = false) String token) {
+        if(token==null) return RespResult.fail().message("用户暂未登录");
+        RespResult<User> result = new RespResult<>();
         User tokenUserInfo = null;
         try {
 
@@ -81,16 +82,16 @@ public class UserController {
 
         } catch (Exception e) {
             log.error("解码异常");
-            return RespResult.fail().message("认证失败");
+            return result.fail().message("认证失败");
 
         }
 
         if (tokenUserInfo != null) {
 
-            return RespResult.success().data(tokenUserInfo);
+            return result.success().data(tokenUserInfo);
 
         } else {
-            return RespResult.fail().message("用户暂未登录");
+            return result.fail().message("用户暂未登录");
         }
     }
 

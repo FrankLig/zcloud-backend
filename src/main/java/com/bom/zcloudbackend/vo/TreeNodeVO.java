@@ -29,6 +29,6 @@ public class TreeNodeVO {
     private Map<String, String> attributes = new HashMap<>();
 
     @ApiModelProperty("子节点列表")
-    private List<TreeNodeVO> child=new ArrayList<>();
+    private List<TreeNodeVO> children=new ArrayList<>();
 
 }

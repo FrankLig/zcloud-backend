@@ -158,20 +158,19 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     }
 
     @Override
-    public List<UserFile> selectFilePathTreeByUserId(Long userId) {
-        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserFile::getUserId, userId)
+    public List<UserFile> selectFilePathTreeByUserId(Long userId) { LambdaQueryWrapper<UserFile> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+        lambdaQueryWrapper.eq(UserFile::getUserId, userId)
             .eq(UserFile::getIsDir, 1);
-        return userFileMapper.selectList(queryWrapper);
+        return userFileMapper.selectList(lambdaQueryWrapper);
     }
 
     @Override
-    public void updateFilepathByFilepath(String oldfilePath, String newfilePath, String fileName, String extendName,
-        Long userId) {
-        if ("null".equals(extendName)) {
+    public void updateFilepathByFilepath(String oldfilePath, String newfilePath, String fileName, String extendName, Long userId) {
+        if ("null".equals(extendName)){
             extendName = null;
         }
-        LambdaUpdateWrapper<UserFile> lambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+
+        LambdaUpdateWrapper<UserFile> lambdaUpdateWrapper = new LambdaUpdateWrapper<UserFile>();
         lambdaUpdateWrapper.set(UserFile::getFilePath, newfilePath)
             .eq(UserFile::getFilePath, oldfilePath)
             .eq(UserFile::getFileName, fileName)
@@ -191,7 +190,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         oldfilePath = oldfilePath.replace("%", "\\%");
         oldfilePath = oldfilePath.replace("_", "\\_");
 
-        if (extendName == null) {
+        if (extendName == null) { //为null说明是目录，则需要移动子目录
             userFileMapper.updateFilepathByFilepath(oldfilePath, newfilePath, userId);
         }
     }

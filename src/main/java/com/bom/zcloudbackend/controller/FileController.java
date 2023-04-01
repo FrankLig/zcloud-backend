@@ -47,9 +47,9 @@ public class FileController {
             return RespResult.fail().message("token认证失败");
         }
         LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(UserFile::getFileName, "")
-            .eq(UserFile::getFilePath, "")
-            .eq(UserFile::getUserId, 0);
+        queryWrapper.eq(UserFile::getFileName, createFileDTO.getFileName())
+            .eq(UserFile::getFilePath, createFileDTO.getFilePath())
+            .eq(UserFile::getUserId, sessionUser.getUserId());
         List<UserFile> userFiles = userFileService.list(queryWrapper);
         if (!userFiles.isEmpty()) {
             return RespResult.fail().message("同一目录下存在相同文件名");
@@ -62,6 +62,7 @@ public class FileController {
         userFile.setIsDir(1);
         userFile.setUploadTime(DateUtil.getCurrentTime());
         userFile.setDeleteTag(0);
+        userFile.setExtendName("文件夹");
 
         userFileService.save(userFile);
         return RespResult.success();
@@ -69,7 +70,7 @@ public class FileController {
     }
 
     @ApiOperation(value = "获取文件列表", notes = "获取文件列表，用于前端文件列表展示")
-    @GetMapping("/getUserFileList")
+    @GetMapping("/getFileList")
     public RespResult<UserFileListVO> getUserFileList(UserFileListDTO userFileListDTO,
         @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
@@ -95,7 +96,7 @@ public class FileController {
     }
 
     @ApiOperation(value = "分类获取文件", notes = "根据文件类型查看文件")
-    @GetMapping("/selectFileByType")
+    @GetMapping("/getFileListByType")
     public RespResult<List<Map<String, Object>>> selectFileByType(int fileType, Long currentPage, Long pageCount,
         @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
@@ -132,39 +133,43 @@ public class FileController {
 
     @ApiOperation(value = "获取文件树", notes = "移动文件时需要用来展示目录")
     @GetMapping("/getFileTree")
-    public RespResult<TreeNodeVO> getFileTree(@RequestHeader("token") String token) {
-        RespResult<TreeNodeVO> result = new RespResult<>();
+    public RespResult<TreeNodeVO> getFileTree(@RequestHeader("token") String token){
+        RespResult<TreeNodeVO> result = new RespResult<TreeNodeVO>();
         UserFile userFile = new UserFile();
         User sessionUser = userService.getUserByToken(token);
         userFile.setUserId(sessionUser.getUserId());
 
         List<UserFile> filePathList = userFileService.selectFilePathTreeByUserId(sessionUser.getUserId());
-        TreeNodeVO resultTreeNodeVO = new TreeNodeVO();
-        resultTreeNodeVO.setLabel("/");
+        TreeNodeVO resultTreeNode = new TreeNodeVO();
+        resultTreeNode.setLabel("/");
 
-        for (int i = 0; i < filePathList.size(); i++) {
+        for (int i = 0; i < filePathList.size(); i++){
             String filePath = filePathList.get(i).getFilePath() + filePathList.get(i).getFileName() + "/";
 
-            Queue<String> queue = new ArrayDeque<>();
+            Queue<String> queue = new LinkedList<>();
 
             String[] strArr = filePath.split("/");
-            for (int j = 0; j < strArr.length; j++) {
-                if (!"".equals(strArr[j]) && strArr[j] != null) {
+            for (int j = 0; j < strArr.length; j++){
+                if (!"".equals(strArr[j]) && strArr[j] != null){
                     queue.add(strArr[j]);
                 }
+
             }
-            if (queue.isEmpty()) {
+            if (queue.size() == 0){
                 continue;
             }
-            resultTreeNodeVO = insertTreeNode(resultTreeNodeVO, "/", queue);
+            resultTreeNode = insertTreeNode(resultTreeNode,"/", queue);
+
+
         }
         result.setSuccess(true);
-        result.setData(resultTreeNodeVO);
+        result.setData(resultTreeNode);
         return result;
+
     }
 
     @ApiOperation(value = "移动文件", notes = "可以移动文件或目录")
-    @PostMapping("/movefile")
+    @PostMapping("/moveFile")
     public RespResult<String> moveFile(@RequestBody MoveFileDTO moveFileDTO, @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
         String oldFilePath = moveFileDTO.getOldFilePath();
@@ -226,55 +231,66 @@ public class FileController {
         return RespResult.success();
     }
 
-    public TreeNodeVO insertTreeNode(TreeNodeVO treeNode, String filePath, Queue<String> nodeNameQueue) {
-        List<TreeNodeVO> childTreeNodes = treeNode.getChild();
-        String currentTreeNode = nodeNameQueue.peek();
-        if (currentTreeNode == null) {
+    public TreeNodeVO insertTreeNode(TreeNodeVO treeNode, String filePath, Queue<String> nodeNameQueue){
+
+        List<TreeNodeVO> childrenTreeNodes = treeNode.getChildren();
+        String currentNodeName = nodeNameQueue.peek();
+        if (currentNodeName == null){
             return treeNode;
         }
 
-        HashMap<String, String> map = new HashMap<>();
-        filePath = filePath + currentTreeNode + "/";
+        Map<String, String> map = new HashMap<>();
+        filePath = filePath + currentNodeName + "/";
         map.put("filePath", filePath);
 
-        if (!isExistPath(childTreeNodes, currentTreeNode)) {
+        if (!isExistPath(childrenTreeNodes, currentNodeName)){  //1、判断有没有该子节点，如果没有则插入
+            //插入
             TreeNodeVO resultTreeNode = new TreeNodeVO();
+
 
             resultTreeNode.setAttributes(map);
             resultTreeNode.setLabel(nodeNameQueue.poll());
-            childTreeNodes.add(resultTreeNode);
-        } else {
+            // resultTreeNode.setId(treeid++);
+
+            childrenTreeNodes.add(resultTreeNode);
+
+        }else{  //2、如果有，则跳过
             nodeNameQueue.poll();
         }
 
-        if (!nodeNameQueue.isEmpty()) {
-            for (int i = 0; i < childTreeNodes.size(); i++) {
-                TreeNodeVO childTreeNode = childTreeNodes.get(i);
-                if (currentTreeNode.equals(childTreeNode.getLabel())) {
-                    childTreeNode = insertTreeNode(childTreeNode, filePath, nodeNameQueue);
-                    childTreeNodes.remove(i);
-                    childTreeNodes.add(childTreeNode);
-                    treeNode.setChild(childTreeNodes);
+        if (nodeNameQueue.size() != 0) {
+            for (int i = 0; i < childrenTreeNodes.size(); i++) {
+
+                TreeNodeVO childrenTreeNode = childrenTreeNodes.get(i);
+                if (currentNodeName.equals(childrenTreeNode.getLabel())){
+                    childrenTreeNode = insertTreeNode(childrenTreeNode, filePath, nodeNameQueue);
+                    childrenTreeNodes.remove(i);
+                    childrenTreeNodes.add(childrenTreeNode);
+                    treeNode.setChildren(childrenTreeNodes);
                 }
+
             }
-        } else {
-            treeNode.setChild(childTreeNodes);
+        }else{
+            treeNode.setChildren(childrenTreeNodes);
         }
+
         return treeNode;
+
     }
 
-    public boolean isExistPath(List<TreeNodeVO> childrenTreeNodes, String path) {
+    public boolean isExistPath(List<TreeNodeVO> childrenTreeNodes, String path){
         boolean isExistPath = false;
 
         try {
-            for (int i = 0; i < childrenTreeNodes.size(); i++) {
-                if (path.equals(childrenTreeNodes.get(i).getLabel())) {
+            for (int i = 0; i < childrenTreeNodes.size(); i++){
+                if (path.equals(childrenTreeNodes.get(i).getLabel())){
                     isExistPath = true;
                 }
             }
-        } catch (Exception e) {
+        }catch (Exception e){
             e.printStackTrace();
         }
+
 
         return isExistPath;
     }

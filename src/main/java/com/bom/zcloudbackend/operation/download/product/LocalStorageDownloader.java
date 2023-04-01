@@ -3,10 +3,12 @@ package com.bom.zcloudbackend.operation.download.product;
 import com.bom.zcloudbackend.common.util.PathUtil;
 import com.bom.zcloudbackend.operation.download.Downloader;
 import com.bom.zcloudbackend.operation.download.domain.DownloadFile;
+import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
+@Component
 public class LocalStorageDownloader extends Downloader {
 
     @Override
