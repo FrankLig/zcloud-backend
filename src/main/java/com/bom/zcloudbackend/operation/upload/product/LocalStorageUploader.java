@@ -5,15 +5,18 @@ import com.bom.zcloudbackend.common.exception.UploadException;
 import com.bom.zcloudbackend.common.util.EncryptUserUtil;
 import com.bom.zcloudbackend.common.util.FileUtil;
 import com.bom.zcloudbackend.common.util.PathUtil;
+import com.bom.zcloudbackend.dto.EncUploadFileDTO;
 import com.bom.zcloudbackend.operation.upload.Uploader;
 import com.bom.zcloudbackend.operation.upload.domain.UploadFile;
 import com.bom.zcloudbackend.service.UserService;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tomcat.util.http.fileupload.servlet.ServletFileUpload;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.multipart.support.StandardMultipartHttpServletRequest;
 
 import javax.annotation.Resource;
@@ -23,6 +26,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -69,8 +76,10 @@ public class LocalStorageUploader extends Uploader {
 
     }
 
+
     /**
      * 真正上传文件接口
+     *
      * @param standardMultipartHttpServletRequest
      * @param savePath
      * @param iter
@@ -160,4 +169,55 @@ public class LocalStorageUploader extends Uploader {
         return saveUploadFileList;
     }
 
+    @Override
+    public List<UploadFile> encUpload(HttpServletRequest request, UploadFile uploadFile, Long userId) {
+        MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
+
+        List<UploadFile> uploadFileList = new ArrayList<>();
+
+        boolean isMultiPart = ServletFileUpload.isMultipartContent(multipartHttpServletRequest);    //是否是文件上传请求
+        if (!isMultiPart) {
+            throw new UploadException("未包含文件上传作用域");
+        }
+
+        String savePath = getSaveFilePath();         //获取文件存放路径
+        Iterator<String> iter = multipartHttpServletRequest.getFileNames();
+        if (iter.hasNext()) {
+            MultipartFile multipartFile = multipartHttpServletRequest.getFile(iter.next());
+
+            String timeStampName = uploadFile.getIdentifier();
+            String originalFilename = multipartFile.getOriginalFilename();
+            String fileName = getFileName(originalFilename);
+            String fileType = FileUtil.getFileExtendName(originalFilename);
+
+            uploadFile.setFileName(fileName);
+            uploadFile.setFileType(fileType);
+            uploadFile.setTimeStampName(timeStampName);
+
+            String saveFilePath = savePath + FILE_SEPARATOR + timeStampName + "." + fileType;
+            File encFile = new File(PathUtil.getStaticPath() + FILE_SEPARATOR + saveFilePath);      //最终生成文件
+
+            uploadFile.setUrl(saveFilePath);    //设置文件保存路径
+
+
+            try {
+                String secretKey=EncryptUserUtil.aesEncrypt(userService.getById(userId).getEncryptKey()).substring(0,32);   //获取用户加密密钥
+                byte[] fileContent = multipartFile.getBytes();
+                SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "AES");
+                Cipher cipher = Cipher.getInstance(ALGORITHM);
+                cipher.init(Cipher.ENCRYPT_MODE,secretKeySpec);
+                byte[] encryptedContent = cipher.doFinal(fileContent);
+                Files.write(Paths.get(PathUtil.getStaticPath()+FILE_SEPARATOR+saveFilePath),encryptedContent, StandardOpenOption.CREATE);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            uploadFile.setSuccess(1);
+            uploadFile.setMessage("加密上传成功");
+            uploadFile.setFileSize(uploadFile.getFileSize());
+            uploadFileList.add(uploadFile);
+        }
+        return uploadFileList;
+    }
 }

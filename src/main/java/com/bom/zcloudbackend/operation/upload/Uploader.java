@@ -1,6 +1,7 @@
 package com.bom.zcloudbackend.operation.upload;
 
 import com.bom.zcloudbackend.common.util.PathUtil;
+import com.bom.zcloudbackend.dto.EncUploadFileDTO;
 import com.bom.zcloudbackend.operation.upload.domain.UploadFile;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -21,8 +22,11 @@ public abstract class Uploader {
     public static final String ROOT_PATH = "upload";
     public static final String FILE_SEPARATOR = "/";
     public final int maxSize = 10000000;
+    public static final String ALGORITHM="AES/ECB/PKCS5Padding";
 
     public abstract List<UploadFile> upload(HttpServletRequest request, UploadFile uploadFile);
+
+    public abstract List<UploadFile> encUpload(HttpServletRequest request, UploadFile uploadFile,Long userId);
 
     /**
      * 根据字符串创建本地目录，并根据日期生成子目录

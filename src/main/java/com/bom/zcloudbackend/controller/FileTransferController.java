@@ -4,6 +4,7 @@ import com.bom.zcloudbackend.common.RespResult;
 import com.bom.zcloudbackend.common.util.DateUtil;
 import com.bom.zcloudbackend.common.util.FileUtil;
 import com.bom.zcloudbackend.dto.DownloadFileDTO;
+import com.bom.zcloudbackend.dto.EncUploadFileDTO;
 import com.bom.zcloudbackend.dto.UploadFileDTO;
 import com.bom.zcloudbackend.entity.File;
 import com.bom.zcloudbackend.entity.Storage;
@@ -106,5 +107,16 @@ public class FileTransferController {
         return RespResult.success().data(size);
     }
 
+    @ApiOperation("上传加密文件")
+    @RequestMapping("/uploadEncFile")
+    public RespResult uploadEncFile(HttpServletRequest request, EncUploadFileDTO encUploadFileDTO,
+        @RequestHeader("token") String token) {
+        User sessionUser = userService.getUserByToken(token);
+        if (sessionUser == null) {
+            return RespResult.fail().message("未登录");
+        }
+        fileTransferService.uploadEncFile(request, encUploadFileDTO, sessionUser.getUserId());
+        return RespResult.success();
+    }
 
 }
