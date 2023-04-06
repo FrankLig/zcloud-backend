@@ -25,12 +25,13 @@ public abstract class Uploader {
     public abstract List<UploadFile> upload(HttpServletRequest request, UploadFile uploadFile);
 
     /**
-     * 创建本地目录，根据日期生成子目录
+     * 根据字符串创建本地目录，并根据日期生成子目录
      *
-     * @return
+     * @return 文件存放目录
      */
     protected String getSaveFilePath() {
         String path = ROOT_PATH;
+        System.out.println(path);
         SimpleDateFormat formater = new SimpleDateFormat("yyyyMMdd");
         path = FILE_SEPARATOR + path + FILE_SEPARATOR + formater.format(new Date());
 
@@ -63,27 +64,45 @@ public abstract class Uploader {
         return "" + System.currentTimeMillis();
     }
 
-
+    /**
+     * 检查文件上传进度
+     * @param param
+     * @param confFile
+     * @return
+     * @throws IOException
+     */
     public synchronized boolean checkUploadStatus(UploadFile param, File confFile) throws IOException {
         RandomAccessFile confAccessFile = new RandomAccessFile(confFile, "rw");
+
         //设置文件长度
         confAccessFile.setLength(param.getTotalChunks());
+
         //设置起始偏移量
         confAccessFile.seek(param.getChunkNumber() - 1);
-        //将指定的一个字节写入文件中 127，
+
+        //将特定的一个字节(127)写入文件中 ，
         confAccessFile.write(Byte.MAX_VALUE);
         byte[] completeStatusList = FileUtils.readFileToByteArray(confFile);
-        confAccessFile.close();//不关闭会造成无法占用
+        confAccessFile.close();         //不关闭会造成无法占用
+
         //创建conf文件文件长度为总分片数，每上传一个分块即向conf文件中写入一个127，那么没上传的位置就是默认的0,已上传的就是127
         for (int i = 0; i < completeStatusList.length; i++) {
             if (completeStatusList[i] != Byte.MAX_VALUE) {
+                //如果byte数组并未全部写入，说明同一文件的所有分片还没有全部上传
                 return false;
             }
         }
+
+        //全部文件上传完成，删除conf文件
         confFile.delete();
         return true;
     }
 
+    /**
+     * 获取不带拓展名的文件名
+     * @param fileName
+     * @return
+     */
     protected String getFileName(String fileName) {
         if (!fileName.contains(".")) {
             return fileName;

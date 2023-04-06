@@ -37,17 +37,25 @@ public class PathUtil {
         return path;
     }
 
+    /**
+     * 获取上传文件存放路径
+     *
+     * @return
+     */
     public static String getStaticPath() {
-        String localStoragePath = PropertiesUtil.getProperty("file.lacal-storage-path");
+        String localStoragePath = PropertiesUtil.getProperty("file.local-storage-path");
         if (StringUtils.isNoneEmpty(localStoragePath)) {
+            System.out.println(localStoragePath);
             return localStoragePath;
         } else {
+            //如果没有设置存放路径，则使用项目所在根路径
             String projectRootAbsolutePath = getProjectRootPath();
-            int index = projectRootAbsolutePath.indexOf("file:");
+            int index = projectRootAbsolutePath.indexOf("file:");       // 返回出现处的索引
             if (index != -1) {
-                projectRootAbsolutePath = projectRootAbsolutePath.substring(0, index);
+                projectRootAbsolutePath = projectRootAbsolutePath.substring(0, index);      //左闭右开
             }
-
+            System.out.println(projectRootAbsolutePath);
+//            log.info(projectRootAbsolutePath+"static"+File.separator);
             return projectRootAbsolutePath + "static" + File.separator;
         }
     }

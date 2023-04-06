@@ -31,8 +31,7 @@ public class UserFile {
     @ApiModelProperty("扩展名")
     private String extendName;
 
-    @ApiModelProperty("是否目录")
-    //是否为目录，0-否，1-是
+    @ApiModelProperty(value = "是否目录",notes = "0-不是目录，1-是目录")
     private Integer isDir;
 
     @ApiModelProperty("上传时间")
@@ -41,7 +40,12 @@ public class UserFile {
     @ApiModelProperty(value = "删除标志",notes = "0-未删除，1-已删除")
     private Integer deleteTag;
 
+    @ApiModelProperty("删除时间")
     private String deleteTime;
 
+    @ApiModelProperty("删除批次号")
     private String deleteBatchNum;
+
+    @ApiModelProperty(value = "是否加密",notes = "0-未加密，1-加密")
+    private Integer encrypted;
 }

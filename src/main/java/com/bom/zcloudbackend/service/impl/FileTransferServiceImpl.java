@@ -36,6 +36,12 @@ public class FileTransferServiceImpl implements FileTransferService {
     @Resource
     private FileOperationFactory localStorageOperationFactory;
 
+    /**
+     * 分片上传文件
+     * @param request   请求
+     * @param uploadFileDTO dto
+     * @param userId    userId
+     */
     @Override
     public void uploadFile(HttpServletRequest request, UploadFileDTO uploadFileDTO, Long userId) {
         Uploader uploader = null;
@@ -47,7 +53,9 @@ public class FileTransferServiceImpl implements FileTransferService {
         uploadFile.setTotalSize(uploadFileDTO.getTotalSize());
         uploadFile.setCurrentChunkSize(uploadFileDTO.getCurrentChunkSize());
 
+        //获取配置设置的存储类型
         String storageType = PropertiesUtil.getProperty("file.storage-type");
+        //获取全局唯一uploader
         synchronized (FileTransferService.class) {
             if ("0".equals(storageType)) {
                 uploader = localStorageOperationFactory.getUploader();
@@ -61,11 +69,13 @@ public class FileTransferServiceImpl implements FileTransferService {
             file.setIdentifier(uploadFileDTO.getIdentifier());
             file.setStorageType(Integer.parseInt(storageType));
             file.setTimeStampName(uploadFile.getTimeStampName());
+            //上传成功
             if (uploadFile.getSuccess() == 1) {
                 file.setFileUrl(uploadFile.getUrl());
                 file.setFileSize(uploadFile.getFileSize());
                 file.setPointCount(1);
                 fileMapper.insert(file);
+
                 UserFile userFile = new UserFile();
                 userFile.setFileId(file.getFileId());
                 userFile.setExtendName(uploadFile.getFileType());
@@ -80,14 +90,17 @@ public class FileTransferServiceImpl implements FileTransferService {
         }
     }
 
+
     @Override
     public void downloadFile(HttpServletResponse response, DownloadFileDTO downloadFileDTO) {
         UserFile userFile = userFileMapper.selectById(downloadFileDTO.getUserFileId());
 
         String fileName = userFile.getFileName() + "." + userFile.getExtendName();
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-        response.setContentType("application/force-download");// 设置强制下载不打开
-        response.addHeader("Content-Disposition", "attachment;fileName=" + fileName);// 设置文件名
+        // 设置强制下载不打开
+        response.setContentType("application/force-download");
+        // 设置文件名
+        response.addHeader("Content-Disposition", "attachment;fileName=" + fileName);
 
         File file = fileMapper.selectById(userFile.getFileId());
         Downloader downloader = null;

@@ -39,7 +39,7 @@ public class FileTransferController {
     @Resource
     private FileTransferService fileTransferService;
 
-    @ApiOperation(value = "极速上传", notes = "检验md5判断文件是否存在，存在则直接上传返回skip-true,不存在则返回skip-false早调用该接口post方法")
+    @ApiOperation(value = "极速上传", notes = "检验md5判断文件是否存在，存在则直接上传返回skipUpload=true,不存在则返回skipUpload=false再次调用该接口的post方法")
     @GetMapping("/uploadFile")
     public RespResult<UploadFileVO> uploadFileSpeed(UploadFileDTO uploadFileDTO, @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
@@ -51,9 +51,10 @@ public class FileTransferController {
         HashMap<String, Object> param = new HashMap<>();
         param.put("identifier", uploadFileDTO.getIdentifier());
         synchronized (FileTransferController.class) {
-            List<File> list = fileService.listByMap(param);
+            List<File> list = fileService.listByMap(param);     //查找文件
             if (list != null && !list.isEmpty()) {
-                File file = list.get(0);
+                //服务器已存在相同文件
+                File file = list.get(0);    //唯一文件
                 UserFile userFile = new UserFile();
                 userFile.setFileId(file.getFileId());
                 userFile.setUserId(sessionUser.getUserId());
@@ -63,10 +64,11 @@ public class FileTransferController {
                 userFile.setExtendName(FileUtil.getFileExtendName(fileName));
                 userFile.setIsDir(0);
                 userFile.setUploadTime(DateUtil.getCurrentTime());
-                userFile.setDeleteTag(0);
+                userFile.setDeleteTag(0);   //未删除
                 userFileService.save(userFile);
-                uploadFileVO.setSkipUpload(true);
+                uploadFileVO.setSkipUpload(true);   //跳过上传
             } else {
+                //需要上传,skipUpload=false
                 uploadFileVO.setSkipUpload(false);
             }
         }
@@ -85,12 +87,12 @@ public class FileTransferController {
 
         fileTransferService.uploadFile(request, uploadFileDto, sessionUser.getUserId());
         UploadFileVO uploadFileVo = new UploadFileVO();
-        return RespResult.success().data(uploadFileVo);
+        return RespResult.success().data(uploadFileVo);     //只返回了成功上传信息
 
     }
 
     @ApiOperation(value = "下载文件")
-    @RequestMapping("/downloadfile")
+    @RequestMapping("/downloadFile")
     public void downloadFile(HttpServletResponse response, DownloadFileDTO downloadFileDTO) {
         fileTransferService.downloadFile(response, downloadFileDTO);
     }
@@ -103,4 +105,6 @@ public class FileTransferController {
         Long size = fileTransferService.selectStorageSizeByUserId(sessionUser.getUserId());
         return RespResult.success().data(size);
     }
+
+
 }

@@ -183,7 +183,7 @@ public class FileController {
     }
 
     @ApiOperation(value = "批量移动文件", notes = "可以移动多个文件或者目录")
-    @PostMapping("/batchmovefile")
+    @PostMapping("/batchMoveFile")
     public RespResult<String> batchMoveFile(@RequestBody BatchMoveFileDTO batchMoveFileDto,
         @RequestHeader("token") String token) {
 
@@ -201,6 +201,8 @@ public class FileController {
 
     }
 
+    @ApiOperation(value = "文件重命名")
+    @PostMapping("/renameFile")
     public RespResult<String> renameFile(@RequestBody RenameFileDTO renameFileDTO,
         @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);

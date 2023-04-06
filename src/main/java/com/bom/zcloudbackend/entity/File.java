@@ -31,6 +31,6 @@ public class File {
     @ApiModelProperty("md5唯一标识")
     private String identifier;
 
-    @ApiModelProperty(value = "引用数量", notes = "上传文件服务器已存在，pc+1,删除-1,大于0文件逻辑删除，等于0彻底物理删除")
+    @ApiModelProperty(value = "引用数量", notes = "上传文件服务器已存在，pc+1,删除时-1,大于0文件逻辑删除，等于0彻底物理删除")
     private Integer pointCount;
 }
