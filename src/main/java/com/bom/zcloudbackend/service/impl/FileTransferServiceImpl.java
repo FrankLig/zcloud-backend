@@ -95,6 +95,7 @@ public class FileTransferServiceImpl implements FileTransferService {
     @Override
     public void downloadFile(HttpServletResponse response, DownloadFileDTO downloadFileDTO) {
         UserFile userFile = userFileMapper.selectById(downloadFileDTO.getUserFileId());
+        Long userId = userFile.getUserId();
 
         String fileName = userFile.getFileName() + "." + userFile.getExtendName();
         fileName = new String(fileName.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
@@ -108,10 +109,14 @@ public class FileTransferServiceImpl implements FileTransferService {
         if (file.getStorageType() == 0) {
             downloader = localStorageOperationFactory.getDownloader();
         }
-        DownloadFile uploadFile = new DownloadFile();
-        uploadFile.setFileUrl(file.getFileUrl());
-        uploadFile.setTimeStampName(file.getTimeStampName());
-        downloader.download(response, uploadFile);
+        DownloadFile downloadFile = new DownloadFile();
+        downloadFile.setFileUrl(file.getFileUrl());
+        downloadFile.setTimeStampName(file.getTimeStampName());
+        if(userFile.getFileName().contains("enc")){
+            downloader.downloadEncFile(response,downloadFile,userId);
+        }else {
+            downloader.download(response, downloadFile);
+        }
     }
 
 

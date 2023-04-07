@@ -46,6 +46,5 @@ public class UserFile {
     @ApiModelProperty("删除批次号")
     private String deleteBatchNum;
 
-    @ApiModelProperty(value = "是否加密",notes = "0-未加密，1-加密")
-    private Integer encrypted;
+
 }

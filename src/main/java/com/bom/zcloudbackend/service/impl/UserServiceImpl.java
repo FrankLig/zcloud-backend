@@ -61,9 +61,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String newPassword = DigestUtils.md5DigestAsHex(ps.getBytes());
 
         //生成加密key并加密存储到数据库
-        String userKey = UUID.randomUUID().toString().substring(0,16);
+        String userKey = UUID.randomUUID().toString().replace("-","").substring(0,16);
         try {
-            String aesEncrypt = EncryptUserUtil.aesEncrypt(userKey);
+            String aesEncrypt = EncryptUserUtil.encrypt(userKey);
             user.setEncryptKey(aesEncrypt);
         } catch (Exception e) {
             return RespResult.fail().message("生成加密密钥失败");

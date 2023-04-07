@@ -15,8 +15,10 @@ public interface FileTransferService {
     //下载文件(普通文件)
     void downloadFile(HttpServletResponse response, DownloadFileDTO downloadFileDTO);
 
+    //上传加密文件
     void uploadEncFile(HttpServletRequest request, EncUploadFileDTO encUploadFileDTO,Long userId);
 
+    //获取用户存储空间
     Long selectStorageSizeByUserId(Long userId);
 
 }

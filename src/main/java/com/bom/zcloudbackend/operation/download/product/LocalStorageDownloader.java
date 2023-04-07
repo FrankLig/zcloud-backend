@@ -1,15 +1,27 @@
 package com.bom.zcloudbackend.operation.download.product;
 
+import com.bom.zcloudbackend.common.util.EncryptUserUtil;
 import com.bom.zcloudbackend.common.util.PathUtil;
 import com.bom.zcloudbackend.operation.download.Downloader;
 import com.bom.zcloudbackend.operation.download.domain.DownloadFile;
+import com.bom.zcloudbackend.service.UserService;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestHeader;
 
+import javax.annotation.Resource;
+import javax.crypto.Cipher;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.security.NoSuchAlgorithmException;
 
 @Component
 public class LocalStorageDownloader extends Downloader {
+
+    @Resource
+    private UserService userService;
 
     @Override
     public void download(HttpServletResponse response, DownloadFile downloadFile) {
@@ -43,5 +55,50 @@ public class LocalStorageDownloader extends Downloader {
                 }
             }
         }
+    }
+
+    @Override
+    public void downloadEncFile(HttpServletResponse response, DownloadFile downloadFile, Long userId) {
+//        BufferedInputStream bis = null;
+//        byte[] buffer = new byte[1024];
+        FileInputStream fis=null;
+        OutputStream os=null;
+        File file = new File(PathUtil.getStaticPath() + downloadFile.getFileUrl());
+        if (file.exists()) {
+            try {
+                Cipher cipher = Cipher.getInstance(ALGORITHM);
+                String secretKey = EncryptUserUtil.decrypt(userService.getById(userId).getEncryptKey());
+//                System.out.println(secretKey);
+                SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "AES");
+                cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+                fis = new FileInputStream(file);
+                os = response.getOutputStream();
+                byte[] buffer=new byte[1024];
+                int bytesRead;
+                while ((bytesRead=fis.read(buffer))!=-1){
+                    byte[] output = cipher.update(buffer, 0, bytesRead);
+                    if(output!=null){
+                        os.write(output);
+                    }
+                }
+                byte[] outputBytes = cipher.doFinal();
+                if(outputBytes!=null){
+                    os.write(outputBytes);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                if(os!=null){
+                    try {
+                        os.close();
+                        fis.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            }
+        }
+
     }
 }

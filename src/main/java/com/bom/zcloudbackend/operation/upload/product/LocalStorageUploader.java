@@ -78,7 +78,7 @@ public class LocalStorageUploader extends Uploader {
 
 
     /**
-     * 真正上传文件接口
+     * 真正的上传文件接口
      *
      * @param standardMultipartHttpServletRequest
      * @param savePath
@@ -169,6 +169,13 @@ public class LocalStorageUploader extends Uploader {
         return saveUploadFileList;
     }
 
+    /**
+     * 加密文件上传
+     * @param request
+     * @param uploadFile
+     * @param userId
+     * @return
+     */
     @Override
     public List<UploadFile> encUpload(HttpServletRequest request, UploadFile uploadFile, Long userId) {
         MultipartHttpServletRequest multipartHttpServletRequest = (MultipartHttpServletRequest) request;
@@ -199,9 +206,10 @@ public class LocalStorageUploader extends Uploader {
 
             uploadFile.setUrl(saveFilePath);    //设置文件保存路径
 
-
+            //加密文件
             try {
-                String secretKey=EncryptUserUtil.aesEncrypt(userService.getById(userId).getEncryptKey()).substring(0,32);   //获取用户加密密钥
+                String secretKey=EncryptUserUtil.decrypt(userService.getById(userId).getEncryptKey());   //获取用户加密密钥
+//                System.out.println(secretKey);
                 byte[] fileContent = multipartFile.getBytes();
                 SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "AES");
                 Cipher cipher = Cipher.getInstance(ALGORITHM);
