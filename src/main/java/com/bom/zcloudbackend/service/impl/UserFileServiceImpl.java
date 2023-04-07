@@ -170,7 +170,8 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     @Override
     public List<UserFile> selectFilePathTreeByUserId(Long userId) { LambdaQueryWrapper<UserFile> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(UserFile::getUserId, userId)
-            .eq(UserFile::getIsDir, 1);
+            .eq(UserFile::getIsDir, 1)
+            .eq(UserFile::getDeleteTag,0);
         return userFileMapper.selectList(lambdaQueryWrapper);
     }
 
