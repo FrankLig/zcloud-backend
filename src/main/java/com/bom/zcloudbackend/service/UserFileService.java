@@ -7,6 +7,9 @@ import com.bom.zcloudbackend.vo.UserFileListVO;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author Frank Liang
+ */
 public interface UserFileService extends IService<UserFile> {
 
     List<UserFileListVO> getUserFileByFilePath(String filePath,Long userId,Long currentPage,Long pageCount);

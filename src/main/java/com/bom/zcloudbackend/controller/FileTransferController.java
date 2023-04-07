@@ -24,6 +24,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * @author Frank Liang
+ */
 @RestController
 @RequestMapping("/fileTransfer")
 public class FileTransferController {
@@ -52,10 +55,12 @@ public class FileTransferController {
         HashMap<String, Object> param = new HashMap<>();
         param.put("identifier", uploadFileDTO.getIdentifier());
         synchronized (FileTransferController.class) {
-            List<File> list = fileService.listByMap(param);     //查找文件
+            //查找文件
+            List<File> list = fileService.listByMap(param);
+            //服务器已存在相同文件
             if (list != null && !list.isEmpty()) {
-                //服务器已存在相同文件
-                File file = list.get(0);    //唯一文件
+                //唯一文件
+                File file = list.get(0);
                 UserFile userFile = new UserFile();
                 userFile.setFileId(file.getFileId());
                 userFile.setUserId(sessionUser.getUserId());
@@ -65,9 +70,11 @@ public class FileTransferController {
                 userFile.setExtendName(FileUtil.getFileExtendName(fileName));
                 userFile.setIsDir(0);
                 userFile.setUploadTime(DateUtil.getCurrentTime());
-                userFile.setDeleteTag(0);   //未删除
+                //设置为未删除
+                userFile.setDeleteTag(0);
                 userFileService.save(userFile);
-                uploadFileVO.setSkipUpload(true);   //跳过上传
+                //跳过上传
+                uploadFileVO.setSkipUpload(true);
             } else {
                 //需要上传,skipUpload=false
                 uploadFileVO.setSkipUpload(false);
@@ -88,7 +95,8 @@ public class FileTransferController {
 
         fileTransferService.uploadFile(request, uploadFileDto, sessionUser.getUserId());
         UploadFileVO uploadFileVo = new UploadFileVO();
-        return RespResult.success().data(uploadFileVo);     //只返回了成功上传信息
+        //只返回了成功上传信息
+        return RespResult.success().data(uploadFileVo);
 
     }
 

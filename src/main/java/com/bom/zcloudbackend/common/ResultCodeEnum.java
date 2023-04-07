@@ -12,10 +12,25 @@ import lombok.Getter;
 @Getter
 public enum ResultCodeEnum {
 
+    /**
+     * 成功返回信息
+     */
     SUCCESS(true, 20000, "success"),
+    /**
+     * 位置错误返回信息
+     */
     UNKNOWN_ERROR(false, 20001, "unknown_error"),
+    /**
+     * 参数错误返回信息
+     */
     PARAM_ERROR(false, 20002, "param_error"),
+    /**
+     * 空指针返回信息
+     */
     NULL_POINT(false, 20003, "nullPoint_error"),
+    /**
+     * 数组越界返回信息
+     */
     INDEX_OUT_OF_BOUNDS(false, 20004, "outOfIndex_error");
 
 

@@ -2,9 +2,11 @@ package com.bom.zcloudbackend.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
+/**
+ * @author Frank Liang
+ */
 @ApiModel("注册DTO")
 @Data
 public class RegisterDTO {

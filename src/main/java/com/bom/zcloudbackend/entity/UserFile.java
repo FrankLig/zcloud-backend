@@ -7,6 +7,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+/**
+ * @author Frank Liang
+ */
 @ApiModel(value = "用户文件", description = "用户与文件的关联")
 @Data
 @TableName("userfile")

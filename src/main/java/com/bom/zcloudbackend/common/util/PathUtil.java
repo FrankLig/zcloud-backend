@@ -2,6 +2,7 @@ package com.bom.zcloudbackend.common.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -10,8 +11,9 @@ import java.net.URLDecoder;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.springframework.util.ResourceUtils;
-
+/**
+ * @author Frank Liang
+ */
 @Slf4j
 public class PathUtil {
 
@@ -50,12 +52,14 @@ public class PathUtil {
         } else {
             //如果没有设置存放路径，则使用项目所在根路径
             String projectRootAbsolutePath = getProjectRootPath();
-            int index = projectRootAbsolutePath.indexOf("file:");       // 返回出现处的索引
+            // 返回出现处的索引
+            int index = projectRootAbsolutePath.indexOf("file:");
             if (index != -1) {
-                projectRootAbsolutePath = projectRootAbsolutePath.substring(0, index);      //左闭右开
+                //左闭右开
+                projectRootAbsolutePath = projectRootAbsolutePath.substring(0, index);
             }
             System.out.println(projectRootAbsolutePath);
-//            log.info(projectRootAbsolutePath+"static"+File.separator);
+
             return projectRootAbsolutePath + "static" + File.separator;
         }
     }

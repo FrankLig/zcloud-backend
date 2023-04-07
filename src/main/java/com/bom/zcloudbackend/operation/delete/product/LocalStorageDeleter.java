@@ -2,7 +2,7 @@ package com.bom.zcloudbackend.operation.delete.product;
 
 import com.bom.zcloudbackend.common.util.FileUtil;
 import com.bom.zcloudbackend.common.util.PathUtil;
-import com.bom.zcloudbackend.operation.delete.Deleter;
+import com.bom.zcloudbackend.operation.delete.BaseDeleter;
 import com.bom.zcloudbackend.operation.delete.domain.DeleteFile;
 import org.springframework.stereotype.Component;
 
@@ -12,9 +12,10 @@ import java.io.File;
  * <p>
  * 本地删除实现类
  * </p>
+ * @author Frank Liang
  */
 @Component
-public class LocalStorageDeleter extends Deleter {
+public class LocalStorageDeleter extends BaseDeleter {
 
     @Override
     public void delete(DeleteFile deleteFile) {

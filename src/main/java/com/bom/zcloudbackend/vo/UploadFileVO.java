@@ -6,6 +6,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * @author Frank Liang
+ */
 @Data
 @ApiModel("文件上传VO")
 public class UploadFileVO {

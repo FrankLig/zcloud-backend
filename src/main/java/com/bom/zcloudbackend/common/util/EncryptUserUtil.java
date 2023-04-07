@@ -1,18 +1,19 @@
 package com.bom.zcloudbackend.common.util;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.Security;
 import java.util.Arrays;
 import java.util.Base64;
 
+
+/**
+ * @author Frank Liang
+ */
 @Component
 public class EncryptUserUtil {
 
@@ -67,6 +68,9 @@ public class EncryptUserUtil {
         } catch (Exception e) {
             System.out.println("Error while decrypting: " + e.toString());
         }
+
         return null;
+
     }
+
 }

@@ -6,6 +6,9 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
+/**
+ * @author Frank Liang
+ */
 @ApiModel("回收站文件")
 @Data
 @TableName("recoveryfile")

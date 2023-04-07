@@ -1,10 +1,12 @@
 package com.bom.zcloudbackend.dto;
 
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+/**
+ * @author Frank Liang
+ */
 @Data
 @ApiModel("上传文件DTO")
 public class UploadFileDTO {

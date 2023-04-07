@@ -6,6 +6,9 @@ import com.bom.zcloudbackend.vo.RecoveryFileListVO;
 
 import java.util.List;
 
+/**
+ * @author Frank Liang
+ */
 public interface RecoveryFileMapper extends BaseMapper<RecoveryFile> {
 
     List<RecoveryFileListVO> selectRecoveryFileList();

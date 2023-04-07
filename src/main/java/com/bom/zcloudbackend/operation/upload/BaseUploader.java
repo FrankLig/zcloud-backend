@@ -1,7 +1,6 @@
 package com.bom.zcloudbackend.operation.upload;
 
 import com.bom.zcloudbackend.common.util.PathUtil;
-import com.bom.zcloudbackend.dto.EncUploadFileDTO;
 import com.bom.zcloudbackend.operation.upload.domain.UploadFile;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -16,16 +15,32 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * @author Frank Liang
+ */
 @Slf4j
-public abstract class Uploader {
+public abstract class BaseUploader {
 
     public static final String ROOT_PATH = "upload";
     public static final String FILE_SEPARATOR = "/";
-    public final int maxSize = 10000000;
+    public static final int maxSize = 10000000;
     public static final String ALGORITHM="AES/ECB/PKCS5Padding";
 
+    /**
+     * 上传文件（分片上传)
+     * @param request
+     * @param uploadFile
+     * @return
+     */
     public abstract List<UploadFile> upload(HttpServletRequest request, UploadFile uploadFile);
 
+    /**
+     * 上传加密文件
+     * @param request
+     * @param uploadFile
+     * @param userId
+     * @return
+     */
     public abstract List<UploadFile> encUpload(HttpServletRequest request, UploadFile uploadFile,Long userId);
 
     /**
@@ -42,7 +57,6 @@ public abstract class Uploader {
         String staticPath = PathUtil.getStaticPath();
 
         File dir = new File(staticPath + path);
-        //LOG.error(PathUtil.getStaticPath() + path);
         if (!dir.exists()) {
             try {
                 boolean isSuccessMakeDir = dir.mkdirs();
@@ -87,7 +101,8 @@ public abstract class Uploader {
         //将特定的一个字节(127)写入文件中 ，
         confAccessFile.write(Byte.MAX_VALUE);
         byte[] completeStatusList = FileUtils.readFileToByteArray(confFile);
-        confAccessFile.close();         //不关闭会造成无法占用
+        //不关闭会造成无法占用
+        confAccessFile.close();
 
         //创建conf文件文件长度为总分片数，每上传一个分块即向conf文件中写入一个127，那么没上传的位置就是默认的0,已上传的就是127
         for (int i = 0; i < completeStatusList.length; i++) {

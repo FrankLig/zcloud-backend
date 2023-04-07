@@ -1,15 +1,31 @@
 package com.bom.zcloudbackend.operation;
 
-import com.bom.zcloudbackend.operation.delete.Deleter;
-import com.bom.zcloudbackend.operation.download.Downloader;
-import com.bom.zcloudbackend.operation.upload.Uploader;
+import com.bom.zcloudbackend.operation.delete.BaseDeleter;
+import com.bom.zcloudbackend.operation.download.BaseDownloader;
+import com.bom.zcloudbackend.operation.upload.BaseUploader;
 
+
+/**
+ * @author Frank Liang
+ */
 public interface FileOperationFactory {
 
-    Uploader getUploader();
+    /**
+     * 获取上传类
+     * @return
+     */
+    BaseUploader getUploader();
 
-    Downloader getDownloader();
+    /**
+     * 获取下载类
+     * @return
+     */
+    BaseDownloader getDownloader();
 
-    Deleter getDeleter();
+    /**
+     * 获取删除类
+     * @return
+     */
+    BaseDeleter getDeleter();
 
 }

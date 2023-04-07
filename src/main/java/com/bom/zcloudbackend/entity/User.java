@@ -9,6 +9,9 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 
+/**
+ * @author Frank Liang
+ */
 @ApiModel("用户")
 @Data
 @TableName("user")

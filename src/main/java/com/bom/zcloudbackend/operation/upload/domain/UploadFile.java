@@ -4,6 +4,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+/**
+ * @author Frank Liang
+ */
 @Data
 @ApiModel("文件上传分片实体")
 public class UploadFile {

@@ -7,6 +7,9 @@ import com.bom.zcloudbackend.service.FileService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+/**
+ * @author Frank Liang
+ */
 @Slf4j
 @Service
 public class FileServiceImpl extends ServiceImpl<FileMapper, File> implements FileService {

@@ -13,7 +13,6 @@ import com.bom.zcloudbackend.mapper.RecoveryFileMapper;
 import com.bom.zcloudbackend.mapper.UserFileMapper;
 import com.bom.zcloudbackend.service.UserFileService;
 import com.bom.zcloudbackend.vo.UserFileListVO;
-import com.github.xiaoymin.knife4j.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -23,12 +22,18 @@ import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * @author Frank Liang
+ */
 @Slf4j
 @Service
 public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> implements UserFileService {
 
     //TODO:改进线程池创建方式
-    public static final Executor executor = Executors.newFixedThreadPool(20);
+    /**
+     * 常量池
+     */
+    public static final Executor EXECUTOR = Executors.newFixedThreadPool(20);
 
     @Resource
     private UserFileMapper userFileMapper;
@@ -135,13 +140,18 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         return userFileMapper.selectList(queryWrapper);
     }
 
-    //删除目录时将该文件目录下的所有文件都放入回收站
+    /**
+     * 删除目录时将该文件目录下的所有文件都放入回收站
+     * @param filePath
+     * @param deleteBatchNum
+     * @param userId
+     */
     private void updateFileDeleteStateByFilePath(String filePath, String deleteBatchNum, Long userId) {
         new Thread(() -> {
             List<UserFile> fileList = selectFileTreeListLikeFilePath(filePath, userId);
             for (int i = 0; i < fileList.size(); i++) {
                 UserFile userFileTemp = fileList.get(i);
-                executor.execute(new Runnable() {
+                EXECUTOR.execute(new Runnable() {
                     @Override
                     public void run() {
                         LambdaUpdateWrapper<UserFile> updateWrapper = new LambdaUpdateWrapper<>();
@@ -190,7 +200,8 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
         oldfilePath = oldfilePath.replace("%", "\\%");
         oldfilePath = oldfilePath.replace("_", "\\_");
 
-        if (extendName == null) { //为null说明是目录，则需要移动子目录
+        //为null说明是目录，则需要移动子目录
+        if (extendName == null) {
             userFileMapper.updateFilepathByFilepath(oldfilePath, newfilePath, userId);
         }
     }

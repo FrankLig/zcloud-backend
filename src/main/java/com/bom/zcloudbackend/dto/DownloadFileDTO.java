@@ -4,6 +4,9 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
+/**
+ * @author Frank Liang
+ */
 @Data
 @ApiModel("下载文件DTO")
 public class DownloadFileDTO {

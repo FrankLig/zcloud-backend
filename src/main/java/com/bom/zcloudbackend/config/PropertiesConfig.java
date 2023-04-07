@@ -7,6 +7,9 @@ import org.springframework.core.env.Environment;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+/**
+ * @author Frank Liang
+ */
 @Configuration
 public class PropertiesConfig {
 

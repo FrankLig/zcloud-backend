@@ -1,5 +1,9 @@
 package com.bom.zcloudbackend.common.constant;
 
+
+/**
+ * @author Frank Liang
+ */
 public class FileConstant {
 
     public static final String[] IMG_FILE = {"bmp", "jpg", "png", "tif", "gif", "jpeg"};

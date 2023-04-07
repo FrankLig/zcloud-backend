@@ -4,6 +4,7 @@ package com.bom.zcloudbackend.common.util;
  * <p>
  * 文件工具类
  * </p>
+ * @author Frank Liang
  */
 public class FileUtil {
 
@@ -19,6 +20,7 @@ public class FileUtil {
     public static final int OTHER_TYPE = 5;
     public static final int SHARE_FILE = 6;
     public static final int RECYCLE_FILE = 7;
+    public static final String DOT=".";
 
     /**
      * 文件是否为图片
@@ -42,10 +44,10 @@ public class FileUtil {
      * @return
      */
     public static String getFileExtendName(String fileName) {
-        if (fileName.lastIndexOf(".") == -1) {
+        if (fileName.lastIndexOf(DOT) == -1) {
             return "";
         }
-        return fileName.substring(fileName.lastIndexOf(".") + 1);
+        return fileName.substring(fileName.lastIndexOf(DOT) + 1);
     }
 
     /**
@@ -56,7 +58,7 @@ public class FileUtil {
      */
     public static String getFileNameNotExtend(String fileName) {
         String fileType = getFileExtendName(fileName);
-        return fileName.replace("." + fileType, "");
+        return fileName.replace(DOT + fileType, "");
     }
 
 

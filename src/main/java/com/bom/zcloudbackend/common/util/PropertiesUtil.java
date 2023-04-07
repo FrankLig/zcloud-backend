@@ -2,6 +2,9 @@ package com.bom.zcloudbackend.common.util;
 
 import org.springframework.core.env.Environment;
 
+/**
+ * @author Frank Liang
+ */
 public class PropertiesUtil {
 
     private static Environment env = null;

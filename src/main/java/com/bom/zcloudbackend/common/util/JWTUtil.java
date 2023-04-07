@@ -17,6 +17,9 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.Date;
 
+/**
+ * @author Frank Liang
+ */
 @Component
 public class JWTUtil {
 
@@ -24,7 +27,10 @@ public class JWTUtil {
     JwtProperties jwtProperties;
 
 
-    // 由字符串生成加密key
+    /**
+     * 由字符串生成密钥
+     * @return  密钥
+     */
     private SecretKey generalKey() {
         // 本地的密码解码
         byte[] encodedKey = Base64.decodeBase64(jwtProperties.getSecret());
@@ -57,20 +63,30 @@ public class JWTUtil {
         defaultClaims.setSubject(subject);
         defaultClaims.setAudience(jwtProperties.getPayload().getRegisterdClaims().getAud());
 
-        JwtBuilder builder = Jwts.builder() // 表示new一个JwtBuilder，设置jwt的body
+        // 表示new一个JwtBuilder，设置jwt的body
+        JwtBuilder builder = Jwts.builder()
             .setClaims(defaultClaims)
-            .setIssuedAt(nowDate) // iat(issuedAt)：jwt的签发时间
-            .signWith(SignatureAlgorithm.forName(jwtProperties.getHeader().getAlg()), key); // 设置签名，使用的是签名算法和签名使用的秘钥
-
+            .setIssuedAt(nowDate)
+            // 设置签名，使用的是签名算法和签名使用的秘钥
+            .signWith(SignatureAlgorithm.forName(jwtProperties.getHeader().getAlg()), key);
         return builder.compact();
     }
 
-    // 解密jwt
+    /**
+     * 解析JWT
+     * @param jwt
+     * @return
+     * @throws Exception
+     */
     public Claims parseJWT(String jwt) throws Exception {
-        SecretKey key = generalKey(); // 签名秘钥，和生成的签名的秘钥一模一样
-        Claims claims = Jwts.parser() // 得到DefaultJwtParser
-            .setSigningKey(key) // 设置签名的秘钥
-            .parseClaimsJws(jwt).getBody(); // 设置需要解析的jwt
+        // 签名秘钥，和生成的签名的秘钥一模一样
+        SecretKey key = generalKey();
+        // 得到DefaultJwtParser
+        Claims claims = Jwts.parser()
+            // 设置签名的秘钥
+            .setSigningKey(key)
+            // 设置需要解析的jwt
+            .parseClaimsJws(jwt).getBody();
         return claims;
     }
 

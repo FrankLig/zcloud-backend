@@ -4,6 +4,8 @@ package com.bom.zcloudbackend.common.exception;
  * <p>
  *     上传异常处理类
  * </p>
+ *
+ * @author Frank Liang
  */
 public class UploadException extends RuntimeException {
 

@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import java.util.*;
 
+/**
+ * @author Frank Liang
+ */
 @Api(tags = "文件")
 @Slf4j
 @RestController
@@ -133,7 +136,7 @@ public class FileController {
 
     @ApiOperation(value = "获取文件树", notes = "移动文件时需要用来展示目录")
     @GetMapping("/getFileTree")
-    public RespResult<TreeNodeVO> getFileTree(@RequestHeader("token") String token){
+    public RespResult<TreeNodeVO> getFileTree(@RequestHeader("token") String token) {
         RespResult<TreeNodeVO> result = new RespResult<TreeNodeVO>();
         UserFile userFile = new UserFile();
         User sessionUser = userService.getUserByToken(token);
@@ -143,22 +146,22 @@ public class FileController {
         TreeNodeVO resultTreeNode = new TreeNodeVO();
         resultTreeNode.setLabel("/");
 
-        for (int i = 0; i < filePathList.size(); i++){
+        for (int i = 0; i < filePathList.size(); i++) {
             String filePath = filePathList.get(i).getFilePath() + filePathList.get(i).getFileName() + "/";
 
             Queue<String> queue = new LinkedList<>();
 
             String[] strArr = filePath.split("/");
-            for (int j = 0; j < strArr.length; j++){
-                if (!"".equals(strArr[j]) && strArr[j] != null){
+            for (int j = 0; j < strArr.length; j++) {
+                if (!"".equals(strArr[j]) && strArr[j] != null) {
                     queue.add(strArr[j]);
                 }
 
             }
-            if (queue.size() == 0){
+            if (queue.size() == 0) {
                 continue;
             }
-            resultTreeNode = insertTreeNode(resultTreeNode,"/", queue);
+            resultTreeNode = insertTreeNode(resultTreeNode, "/", queue);
 
 
         }
@@ -233,11 +236,11 @@ public class FileController {
         return RespResult.success();
     }
 
-    public TreeNodeVO insertTreeNode(TreeNodeVO treeNode, String filePath, Queue<String> nodeNameQueue){
+    public TreeNodeVO insertTreeNode(TreeNodeVO treeNode, String filePath, Queue<String> nodeNameQueue) {
 
         List<TreeNodeVO> childrenTreeNodes = treeNode.getChildren();
         String currentNodeName = nodeNameQueue.peek();
-        if (currentNodeName == null){
+        if (currentNodeName == null) {
             return treeNode;
         }
 
@@ -245,18 +248,19 @@ public class FileController {
         filePath = filePath + currentNodeName + "/";
         map.put("filePath", filePath);
 
-        if (!isExistPath(childrenTreeNodes, currentNodeName)){  //1、判断有没有该子节点，如果没有则插入
+        //1、判断有没有该子节点，如果没有则插入
+        if (!isExistPath(childrenTreeNodes, currentNodeName)) {
             //插入
             TreeNodeVO resultTreeNode = new TreeNodeVO();
 
-
             resultTreeNode.setAttributes(map);
             resultTreeNode.setLabel(nodeNameQueue.poll());
-            // resultTreeNode.setId(treeid++);
 
             childrenTreeNodes.add(resultTreeNode);
 
-        }else{  //2、如果有，则跳过
+
+        } else {
+            //2、如果有，则跳过
             nodeNameQueue.poll();
         }
 
@@ -264,7 +268,7 @@ public class FileController {
             for (int i = 0; i < childrenTreeNodes.size(); i++) {
 
                 TreeNodeVO childrenTreeNode = childrenTreeNodes.get(i);
-                if (currentNodeName.equals(childrenTreeNode.getLabel())){
+                if (currentNodeName.equals(childrenTreeNode.getLabel())) {
                     childrenTreeNode = insertTreeNode(childrenTreeNode, filePath, nodeNameQueue);
                     childrenTreeNodes.remove(i);
                     childrenTreeNodes.add(childrenTreeNode);
@@ -272,7 +276,7 @@ public class FileController {
                 }
 
             }
-        }else{
+        } else {
             treeNode.setChildren(childrenTreeNodes);
         }
 
@@ -280,19 +284,18 @@ public class FileController {
 
     }
 
-    public boolean isExistPath(List<TreeNodeVO> childrenTreeNodes, String path){
+    public boolean isExistPath(List<TreeNodeVO> childrenTreeNodes, String path) {
         boolean isExistPath = false;
 
         try {
-            for (int i = 0; i < childrenTreeNodes.size(); i++){
-                if (path.equals(childrenTreeNodes.get(i).getLabel())){
+            for (int i = 0; i < childrenTreeNodes.size(); i++) {
+                if (path.equals(childrenTreeNodes.get(i).getLabel())) {
                     isExistPath = true;
                 }
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
 
         return isExistPath;
     }

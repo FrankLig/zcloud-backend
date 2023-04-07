@@ -1,7 +1,6 @@
 package com.bom.zcloudbackend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bom.zcloudbackend.common.RespResult;
 import com.bom.zcloudbackend.common.util.DateUtil;
@@ -21,6 +20,9 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * @author Frank Liang
+ */
 @Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
@@ -36,13 +38,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public RespResult<String> registerUser(User user) {
-//        String telephone = user.getTelephone();
         String password = user.getPassword();
         String username = user.getUsername();
 
-//        if (!StringUtils.hasLength(telephone)) {
-//            return RespResult.fail().message("手机号不能为空");
-//        }
+
         if (!StringUtils.hasLength(password)) {
             return RespResult.fail().message("密码不能为为空");
         }
@@ -52,9 +51,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (isExistUsername(username)) {
             return RespResult.fail().message("用户名已存在");
         }
-//        if (isExistPhone(telephone)) {
-//            return RespResult.fail().message("该手机号已被注册");
-//        }
+
 
         String salt = UUID.randomUUID().toString().replace("-", "").substring(15);
         String ps = password + salt;

@@ -3,16 +3,16 @@ package com.bom.zcloudbackend.service.impl;
 import com.bom.zcloudbackend.common.util.DateUtil;
 import com.bom.zcloudbackend.common.util.PropertiesUtil;
 import com.bom.zcloudbackend.dto.DownloadFileDTO;
+import com.bom.zcloudbackend.dto.EncUploadFileDTO;
 import com.bom.zcloudbackend.dto.UploadFileDTO;
 import com.bom.zcloudbackend.entity.File;
 import com.bom.zcloudbackend.entity.UserFile;
 import com.bom.zcloudbackend.mapper.FileMapper;
 import com.bom.zcloudbackend.mapper.UserFileMapper;
 import com.bom.zcloudbackend.operation.FileOperationFactory;
-import com.bom.zcloudbackend.operation.download.Downloader;
+import com.bom.zcloudbackend.operation.download.BaseDownloader;
 import com.bom.zcloudbackend.operation.download.domain.DownloadFile;
-import com.bom.zcloudbackend.operation.upload.Uploader;
-import com.bom.zcloudbackend.dto.EncUploadFileDTO;
+import com.bom.zcloudbackend.operation.upload.BaseUploader;
 import com.bom.zcloudbackend.operation.upload.domain.UploadFile;
 import com.bom.zcloudbackend.service.FileTransferService;
 import org.springframework.stereotype.Service;
@@ -24,6 +24,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * @author Frank Liang
+ */
 @Service
 public class FileTransferServiceImpl implements FileTransferService {
 
@@ -45,7 +48,7 @@ public class FileTransferServiceImpl implements FileTransferService {
      */
     @Override
     public void uploadFile(HttpServletRequest request, UploadFileDTO uploadFileDTO, Long userId) {
-        Uploader uploader = null;
+        BaseUploader uploader = null;
         UploadFile uploadFile = new UploadFile();
         uploadFile.setChunkNumber(uploadFileDTO.getChunkNumber());
         uploadFile.setChunkSize(uploadFileDTO.getChunkSize());
@@ -105,16 +108,16 @@ public class FileTransferServiceImpl implements FileTransferService {
         response.addHeader("Content-Disposition", "attachment;fileName=" + fileName);
 
         File file = fileMapper.selectById(userFile.getFileId());
-        Downloader downloader = null;
+        BaseDownloader downloader = null;
         if (file.getStorageType() == 0) {
             downloader = localStorageOperationFactory.getDownloader();
         }
         DownloadFile downloadFile = new DownloadFile();
         downloadFile.setFileUrl(file.getFileUrl());
         downloadFile.setTimeStampName(file.getTimeStampName());
-        if(userFile.getFileName().contains("enc")){
-            downloader.downloadEncFile(response,downloadFile,userId);
-        }else {
+        if (userFile.getFileName().contains("enc")) {
+            downloader.downloadEncFile(response, downloadFile, userId);
+        } else {
             downloader.download(response, downloadFile);
         }
     }
@@ -127,10 +130,12 @@ public class FileTransferServiceImpl implements FileTransferService {
 
     @Override
     public void uploadEncFile(HttpServletRequest request, EncUploadFileDTO encUploadFileDTO, Long userId) {
-        Uploader uploader = null;
+        BaseUploader uploader = null;
         UploadFile uploadFile = new UploadFile();
-        uploadFile.setIdentifier(UUID.randomUUID().toString());     //设置唯一标识
-        uploadFile.setFileSize(encUploadFileDTO.getFileSize());     //设置文件大小
+        //设置唯一标识
+        uploadFile.setIdentifier(UUID.randomUUID().toString());
+        //设置文件大小
+        uploadFile.setFileSize(encUploadFileDTO.getFileSize());
 
         String storageType = PropertiesUtil.getProperty("file.storage-type");
         synchronized (FileTransferService.class) {
@@ -138,12 +143,13 @@ public class FileTransferServiceImpl implements FileTransferService {
                 uploader = localStorageOperationFactory.getUploader();
             }
         }
-        List<UploadFile> uploadFileList = uploader.encUpload(request, uploadFile, userId);//真正上传文件
+        //真正上传文件
+        List<UploadFile> uploadFileList = uploader.encUpload(request, uploadFile, userId);
         for (int i = 0; i < uploadFileList.size(); i++) {
             uploadFile = uploadFileList.get(i);
 
             File file = new File();
-            file.setIdentifier(uploadFile.getIdentifier().substring(0,32));
+            file.setIdentifier(uploadFile.getIdentifier().substring(0, 32));
             file.setStorageType(Integer.parseInt(storageType));
             file.setTimeStampName(uploadFile.getTimeStampName());
 

@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 
 
+/**
+ * @author Frank Liang
+ */
 @Api(tags = "用户")
 @Slf4j
 @RestController
@@ -69,9 +72,11 @@ public class UserController {
 
     @ApiOperation(value = "登录校验", notes = "校验token有效性")
     @GetMapping("/checkUserLoginInfo")
-    public RespResult<User> checkToken(@RequestHeader(value = "token",required = false) String token) {
-        if(token==null) return RespResult.fail().message("用户暂未登录");
-        RespResult<User> result = new RespResult<>();
+    public RespResult<User> checkToken(@RequestHeader(value = "token", required = false) String token) {
+        if (token == null) {
+            return RespResult.fail().message("用户暂未登录");
+        }
+
         User tokenUserInfo = null;
         try {
 
@@ -82,16 +87,16 @@ public class UserController {
 
         } catch (Exception e) {
             log.error("解码异常");
-            return result.fail().message("认证失败");
+            return RespResult.fail().message("认证失败");
 
         }
 
         if (tokenUserInfo != null) {
 
-            return result.success().data(tokenUserInfo);
+            return RespResult.success().data(tokenUserInfo);
 
         } else {
-            return result.fail().message("用户暂未登录");
+            return RespResult.fail().message("用户暂未登录");
         }
     }
 

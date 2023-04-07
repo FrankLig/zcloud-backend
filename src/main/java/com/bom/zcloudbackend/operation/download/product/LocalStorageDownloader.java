@@ -2,23 +2,22 @@ package com.bom.zcloudbackend.operation.download.product;
 
 import com.bom.zcloudbackend.common.util.EncryptUserUtil;
 import com.bom.zcloudbackend.common.util.PathUtil;
-import com.bom.zcloudbackend.operation.download.Downloader;
+import com.bom.zcloudbackend.operation.download.BaseDownloader;
 import com.bom.zcloudbackend.operation.download.domain.DownloadFile;
 import com.bom.zcloudbackend.service.UserService;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestHeader;
 
 import javax.annotation.Resource;
 import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.security.NoSuchAlgorithmException;
 
+/**
+ * @author Frank Liang
+ */
 @Component
-public class LocalStorageDownloader extends Downloader {
+public class LocalStorageDownloader extends BaseDownloader {
 
     @Resource
     private UserService userService;
@@ -59,8 +58,6 @@ public class LocalStorageDownloader extends Downloader {
 
     @Override
     public void downloadEncFile(HttpServletResponse response, DownloadFile downloadFile, Long userId) {
-//        BufferedInputStream bis = null;
-//        byte[] buffer = new byte[1024];
         FileInputStream fis=null;
         OutputStream os=null;
         File file = new File(PathUtil.getStaticPath() + downloadFile.getFileUrl());
@@ -68,7 +65,6 @@ public class LocalStorageDownloader extends Downloader {
             try {
                 Cipher cipher = Cipher.getInstance(ALGORITHM);
                 String secretKey = EncryptUserUtil.decrypt(userService.getById(userId).getEncryptKey());
-//                System.out.println(secretKey);
                 SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(), "AES");
                 cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
                 fis = new FileInputStream(file);
