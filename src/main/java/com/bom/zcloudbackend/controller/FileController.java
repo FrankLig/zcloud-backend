@@ -65,7 +65,6 @@ public class FileController {
         userFile.setIsDir(1);
         userFile.setUploadTime(DateUtil.getCurrentTime());
         userFile.setDeleteTag(0);
-        userFile.setExtendName("文件夹");
 
         userFileService.save(userFile);
         return RespResult.success();

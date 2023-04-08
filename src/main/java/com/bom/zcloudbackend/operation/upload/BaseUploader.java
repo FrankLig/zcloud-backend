@@ -50,7 +50,7 @@ public abstract class BaseUploader {
      */
     protected String getSaveFilePath() {
         String path = ROOT_PATH;
-        System.out.println(path);
+
         SimpleDateFormat formater = new SimpleDateFormat("yyyyMMdd");
         path = FILE_SEPARATOR + path + FILE_SEPARATOR + formater.format(new Date());
 

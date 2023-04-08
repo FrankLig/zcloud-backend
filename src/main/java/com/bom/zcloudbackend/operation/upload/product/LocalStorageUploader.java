@@ -226,6 +226,8 @@ public class LocalStorageUploader extends BaseUploader {
             String saveFilePath = savePath + FILE_SEPARATOR + timeStampName + "." + fileType;
             //最终生成文件
             File encFile = new File(PathUtil.getStaticPath() + FILE_SEPARATOR + saveFilePath);
+            System.out.println(PathUtil.getStaticPath()+FILE_SEPARATOR+saveFilePath);
+
 
             //设置文件保存路径
             uploadFile.setUrl(saveFilePath);

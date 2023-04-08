@@ -83,7 +83,7 @@ public class FileTransferController {
         return RespResult.success().data(uploadFileVO);
     }
 
-    @ApiOperation(value = "上传文件夹", notes = "真正的文件上传接口")
+    @ApiOperation(value = "上传文件", notes = "真正的文件上传接口")
     @PostMapping("/uploadFile")
     public RespResult<UploadFileVO> uploadFile(HttpServletRequest request, UploadFileDTO uploadFileDto,
         @RequestHeader("token") String token) {
