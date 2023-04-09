@@ -4,12 +4,15 @@ import com.alibaba.fastjson2.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.bom.zcloudbackend.common.RespResult;
+import com.bom.zcloudbackend.common.util.AsyncTaskUtil;
 import com.bom.zcloudbackend.common.util.DateUtil;
 import com.bom.zcloudbackend.dto.*;
 import com.bom.zcloudbackend.entity.File;
+import com.bom.zcloudbackend.entity.RecoveryFile;
 import com.bom.zcloudbackend.entity.User;
 import com.bom.zcloudbackend.entity.UserFile;
 import com.bom.zcloudbackend.service.FileService;
+import com.bom.zcloudbackend.service.RecoveryFileService;
 import com.bom.zcloudbackend.service.UserFileService;
 import com.bom.zcloudbackend.service.UserService;
 import com.bom.zcloudbackend.vo.TreeNodeVO;
@@ -39,6 +42,12 @@ public class FileController {
 
     @Resource
     private UserFileService userFileService;
+
+    @Resource
+    private AsyncTaskUtil asyncTaskUtil;
+
+    @Resource
+    private RecoveryFileService recoveryFileService;
 
     @ApiOperation(value = "创建文件", notes = "认证当前token获取用户，创建目录/文件夹")
     @PostMapping("/createFile")
@@ -117,7 +126,11 @@ public class FileController {
     public RespResult deleteFile(@RequestBody DeleteFileDTO deleteFileDTO, @RequestHeader("token") String token) {
         User sessionUser = userService.getUserByToken(token);
         userFileService.deleteUserFile(deleteFileDTO.getUserFileId(), sessionUser.getUserId());
-        return RespResult.success();
+        RecoveryFile recoveryFile = recoveryFileService.getOne(
+            new LambdaQueryWrapper<RecoveryFile>().eq(RecoveryFile::getUserFileId, deleteFileDTO.getUserFileId()));
+        asyncTaskUtil.deleteUserFile(recoveryFile.getUserFileId());
+        recoveryFileService.removeById(recoveryFile.getRecoveryFileId());
+        return RespResult.success().data("删除成功");
     }
 
     @ApiOperation("批量删除文件")
@@ -128,6 +141,10 @@ public class FileController {
         List<UserFile> userFiles = JSON.parseArray(batchDeleteFileDTO.getFiles(), UserFile.class);
         for (UserFile userFile : userFiles) {
             userFileService.deleteUserFile(userFile.getUserFileId(), sessionUser.getUserId());
+            RecoveryFile recoveryFile = recoveryFileService.getOne(
+                new LambdaQueryWrapper<RecoveryFile>().eq(RecoveryFile::getUserFileId, userFile.getUserFileId()));
+            asyncTaskUtil.deleteUserFile(recoveryFile.getUserFileId());
+            recoveryFileService.removeById(recoveryFile.getRecoveryFileId());
         }
         return RespResult.success().message("批量删除文件成功");
     }

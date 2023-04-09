@@ -4,10 +4,12 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.bom.zcloudbackend.entity.RecoveryFile;
 import com.bom.zcloudbackend.mapper.RecoveryFileMapper;
 import com.bom.zcloudbackend.service.RecoveryFileService;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Frank Liang
  */
+@Service
 public class RecoveryFileServiceImpl extends ServiceImpl<RecoveryFileMapper, RecoveryFile> implements
     RecoveryFileService {
 

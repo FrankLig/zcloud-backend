@@ -20,7 +20,10 @@ public class LocalStorageDeleter extends BaseDeleter {
     @Override
     public void delete(DeleteFile deleteFile) {
         File file = new File(PathUtil.getStaticPath() + deleteFile.getFileUrl());
+        System.out.println(PathUtil.getStaticPath()+deleteFile.getFileUrl());
         if (file.exists()) {
+
+            System.out.println("删除本地文件");
             file.delete();
         }
         if (FileUtil.isImageFile(FileUtil.getFileExtendName(deleteFile.getFileUrl()))) {

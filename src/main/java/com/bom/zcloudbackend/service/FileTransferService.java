@@ -1,8 +1,9 @@
 package com.bom.zcloudbackend.service;
 
 import com.bom.zcloudbackend.dto.DownloadFileDTO;
-import com.bom.zcloudbackend.dto.UploadFileDTO;
 import com.bom.zcloudbackend.dto.EncUploadFileDTO;
+import com.bom.zcloudbackend.dto.UploadFileDTO;
+import com.bom.zcloudbackend.entity.File;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -35,6 +36,11 @@ public interface FileTransferService {
      */
     void uploadEncFile(HttpServletRequest request, EncUploadFileDTO encUploadFileDTO,Long userId);
 
+    /**
+     * 彻底删除文件
+     * @param file
+     */
+    void deleteFile(File file);
     /**
      * 获取用户存储空间
      * @param userId

@@ -10,6 +10,9 @@ import com.bom.zcloudbackend.entity.UserFile;
 import com.bom.zcloudbackend.mapper.FileMapper;
 import com.bom.zcloudbackend.mapper.UserFileMapper;
 import com.bom.zcloudbackend.operation.FileOperationFactory;
+import com.bom.zcloudbackend.operation.delete.BaseDeleter;
+import com.bom.zcloudbackend.operation.delete.domain.DeleteFile;
+import com.bom.zcloudbackend.operation.delete.product.LocalStorageDeleter;
 import com.bom.zcloudbackend.operation.download.BaseDownloader;
 import com.bom.zcloudbackend.operation.download.domain.DownloadFile;
 import com.bom.zcloudbackend.operation.upload.BaseUploader;
@@ -171,5 +174,15 @@ public class FileTransferServiceImpl implements FileTransferService {
                 userFileMapper.insert(userFile);
             }
         }
+    }
+
+    @Override
+    public void deleteFile(File file) {
+        BaseDeleter deleter=null;
+        deleter= new LocalStorageDeleter();
+        DeleteFile deleteFile = new DeleteFile();
+        deleteFile.setFileUrl(file.getFileUrl());
+        deleter.delete(deleteFile);
+
     }
 }

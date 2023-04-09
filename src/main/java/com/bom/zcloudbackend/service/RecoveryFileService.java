@@ -6,6 +6,7 @@ import com.bom.zcloudbackend.entity.RecoveryFile;
 /**
  * @author Frank Liang
  */
+
 public interface RecoveryFileService extends IService<RecoveryFile> {
 
 }
