@@ -216,7 +216,7 @@ public class LocalStorageUploader extends BaseUploader {
 
             String timeStampName = uploadFile.getIdentifier();
             String originalFilename = multipartFile.getOriginalFilename();
-            String fileName = getFileName(originalFilename);
+            String fileName = getFileName(originalFilename)+"-enc";
             String fileType = FileUtil.getFileExtendName(originalFilename);
 
             uploadFile.setFileName(fileName);

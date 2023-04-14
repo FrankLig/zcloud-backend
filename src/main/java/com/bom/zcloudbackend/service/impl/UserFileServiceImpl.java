@@ -100,6 +100,8 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
                 .set(UserFile::getDeleteTime, DateUtil.getCurrentTime())
                 .eq(UserFile::getUserFileId, userFileId);
             userFileMapper.update(null, userFileLambdaUpdateWrapper);
+            //在AsyncUtil中删除userfile记录
+//            userFileMapper.deleteById(userFileId);
 
             String filePath = userFile.getFilePath() + userFile.getFileName() + "/";
             updateFileDeleteStateByFilePath(filePath, userFile.getDeleteBatchNum(), sessionUserId);
@@ -113,6 +115,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
                 .set(UserFile::getDeleteBatchNum, uuid)
                 .eq(UserFile::getUserFileId, userFileTemp.getUserFileId());
             userFileMapper.update(null, userFileLambdaUpdateWrapper);
+//            userFileMapper.deleteById(userFileTemp.getUserFileId());
 
         }
 

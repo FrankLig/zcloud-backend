@@ -1,5 +1,6 @@
 package com.bom.zcloudbackend.common.util;
 
+
 /**
  * <p>
  * 文件工具类
@@ -7,6 +8,9 @@ package com.bom.zcloudbackend.common.util;
  * @author Frank Liang
  */
 public class FileUtil {
+
+    public static String LOCAL_STORAGE_PATH;
+    public static String ROOT_PATH;
 
     public static final String[] IMG_FILE = {"bmp", "jpg", "png", "tif", "gif", "jpeg"};
     public static final String[] DOC_FILE = {"doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt", "hlp", "wps", "rtf",
@@ -60,6 +64,12 @@ public class FileUtil {
         String fileType = getFileExtendName(fileName);
         return fileName.replace(DOT + fileType, "");
     }
+
+
+
+
+
+
 
 
 }

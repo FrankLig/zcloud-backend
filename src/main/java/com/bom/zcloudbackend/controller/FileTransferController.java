@@ -65,7 +65,7 @@ public class FileTransferController {
                 userFile.setFileId(file.getFileId());
                 userFile.setUserId(sessionUser.getUserId());
                 userFile.setFilePath(uploadFileDTO.getFilePath());
-                String fileName = uploadFileDTO.getFileName();
+                String fileName = uploadFileDTO.getFilename();
                 userFile.setFileName(fileName.substring(0, fileName.lastIndexOf(".")));
                 userFile.setExtendName(FileUtil.getFileExtendName(fileName));
                 userFile.setIsDir(0);

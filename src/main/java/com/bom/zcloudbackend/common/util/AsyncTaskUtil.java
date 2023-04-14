@@ -71,6 +71,8 @@ public class AsyncTaskUtil {
                     try {
                         fileTransferService.deleteFile(fileBean);
                         fileMapper.deleteById(fileBean.getFileId());
+                        System.out.println("删除userFile记录---------------");
+                        userFileMapper.deleteById(file.getUserFileId());
                     } catch (Exception e) {
                         log.error("删除本地文件失败" + JSON.toJSONString(fileBean));
                     }
@@ -86,6 +88,8 @@ public class AsyncTaskUtil {
                 try {
                     fileTransferService.deleteFile(fileBean);
                     fileMapper.deleteById(fileBean.getFileId());
+                    System.out.println("删除userFile记录---------------");
+                    userFileMapper.deleteById(userFile.getUserFileId());
                 } catch (Exception e) {
                     log.error("删除本地文件失败：" + JSON.toJSONString(fileBean));
                 }
