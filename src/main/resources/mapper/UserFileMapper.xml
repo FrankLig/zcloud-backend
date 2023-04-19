@@ -77,8 +77,10 @@
     </select>
 
     <update id="updateFilepathByFilepath">
-        UPDATE userfile SET filePath=REPLACE(filePath, #{param1}, #{param2})
-        WHERE filePath like N'${param1}%' and userId = #{param3}
+        UPDATE userfile
+        SET filePath=REPLACE(filePath, #{param1}, #{param2})
+        WHERE filePath like N'${param1}%'
+          and userId = #{param3}
     </update>
 
     <update id="replaceFilePath">
@@ -88,4 +90,19 @@
           and userId = #{userId};
     </update>
 
+
+    <select id="searchFile" resultType="com.bom.zcloudbackend.vo.UserFileListVO">
+        select * from userfile a
+        left join file on file.fileId=a.fileId
+        <where>
+            <if test="userId!=null">
+                and a.userId=#{userId}
+            </if>
+            <if test="searchText!=null">
+                and a.fileName like CONCAT('%',#{searchText},'%')
+            </if>
+        </where>
+        and a.deleteTag = 0
+        limit #{beginCount},#{pageCount}
+    </select>
 </mapper>

@@ -24,6 +24,15 @@ public interface UserFileMapper extends BaseMapper<UserFile> {
     List<UserFileListVO> userfileList(UserFile userfile, Long beginCount, Long pageCount);
 
     /**
+     * 根据关键字查询用户文件
+     * @param searchText
+     * @param beginCount
+     * @param pageCount
+     * @return
+     */
+    List<UserFileListVO> searchFile(Long userId,String searchText, Long beginCount, Long pageCount);
+
+    /**
      * 根据类型查找文件
      * @param fileNameList
      * @param beginCount

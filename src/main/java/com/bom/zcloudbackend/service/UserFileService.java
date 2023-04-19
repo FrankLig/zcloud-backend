@@ -28,4 +28,6 @@ public interface UserFileService extends IService<UserFile> {
 
     void replaceUserFilePath(String filePath, String oldFilePath, Long userId);
 
+    List<UserFileListVO> searchFile(Long userId,String searchText,Long currentPage, Long pageCount);
+
 }

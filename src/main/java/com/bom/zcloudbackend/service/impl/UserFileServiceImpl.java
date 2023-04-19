@@ -224,4 +224,11 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     public void replaceUserFilePath(String filePath, String oldFilePath, Long userId) {
         userFileMapper.replaceFilePath(filePath,oldFilePath,userId);
     }
+
+    @Override
+    public List<UserFileListVO> searchFile(Long userId,String searchText, Long currentPage, Long pageCount) {
+        Long beginCount = (currentPage - 1) * pageCount;
+        List<UserFileListVO> list = userFileMapper.searchFile(userId,searchText, beginCount, pageCount);
+        return list;
+    }
 }

@@ -252,6 +252,30 @@ public class FileController {
         return RespResult.success();
     }
 
+    @ApiOperation(value = "搜索文件")
+    @PostMapping("searchFile")
+    public RespResult<UserFileListVO> searchFile(@RequestBody SearchFileDTO searchFileDTO,@RequestHeader("token") String token){
+        User currentUser = userService.getUserByToken(token);
+        List<UserFileListVO> fileList = userFileService.searchFile(currentUser.getUserId(),
+            searchFileDTO.getFileName(), searchFileDTO.getCurrentPage(), searchFileDTO.getPageCount());
+        LambdaQueryWrapper<UserFile> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserFile::getUserId,currentUser.getUserId())
+            .like(UserFile::getFileName,searchFileDTO.getFileName());
+        int total = userFileService.count(queryWrapper);
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("total", total);
+        map.put("list", fileList);
+
+        return RespResult.success().data(map);
+    }
+
+    /**
+     * 组织一个树目录节点，文件移动的时候应用
+     * @param treeNode
+     * @param filePath
+     * @param nodeNameQueue
+     * @return
+     */
     public TreeNodeVO insertTreeNode(TreeNodeVO treeNode, String filePath, Queue<String> nodeNameQueue) {
 
         List<TreeNodeVO> childrenTreeNodes = treeNode.getChildren();
@@ -300,6 +324,12 @@ public class FileController {
 
     }
 
+    /**
+     * 判断该路径在树节点是否已经存在
+     * @param childrenTreeNodes
+     * @param path
+     * @return
+     */
     public boolean isExistPath(List<TreeNodeVO> childrenTreeNodes, String path) {
         boolean isExistPath = false;
 
