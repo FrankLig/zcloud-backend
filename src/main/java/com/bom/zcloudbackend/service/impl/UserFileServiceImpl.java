@@ -16,6 +16,7 @@ import com.bom.zcloudbackend.vo.UserFileListVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -27,13 +28,14 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 @Service
+@Transactional(rollbackFor = Exception.class)
 public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> implements UserFileService {
 
     //TODO:改进线程池创建方式
     /**
-     * 常量池
+     * 线程池
      */
-    public static final Executor EXECUTOR = Executors.newFixedThreadPool(20);
+    public static Executor executor = Executors.newFixedThreadPool(20);
 
     @Resource
     private UserFileMapper userFileMapper;
@@ -93,6 +95,7 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
     public void deleteUserFile(Long userFileId, Long sessionUserId) {
         UserFile userFile = userFileMapper.selectById(userFileId);
         String uuid = UUID.randomUUID().toString();
+        System.out.println(userFile);
         if (userFile.getIsDir() == 1) {
             LambdaUpdateWrapper<UserFile> userFileLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
             userFileLambdaUpdateWrapper.set(UserFile::getDeleteTag, 1)
@@ -100,11 +103,11 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
                 .set(UserFile::getDeleteTime, DateUtil.getCurrentTime())
                 .eq(UserFile::getUserFileId, userFileId);
             userFileMapper.update(null, userFileLambdaUpdateWrapper);
-            //在AsyncUtil中删除userfile记录
+            //在这里不删除userfile记录，在AsyncUtil中删除userfile记录
 //            userFileMapper.deleteById(userFileId);
 
             String filePath = userFile.getFilePath() + userFile.getFileName() + "/";
-            updateFileDeleteStateByFilePath(filePath, userFile.getDeleteBatchNum(), sessionUserId);
+            updateFileDeleteStateByFilePath(filePath, uuid, sessionUserId);
 
         } else {
             UserFile userFileTemp = userFileMapper.selectById(userFileId);
@@ -145,42 +148,43 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
 
     /**
      * 删除目录时将该文件目录下的所有文件都放入回收站
+     *
      * @param filePath
      * @param deleteBatchNum
      * @param userId
      */
+
     private void updateFileDeleteStateByFilePath(String filePath, String deleteBatchNum, Long userId) {
-        new Thread(() -> {
+        executor.execute(() -> {
             List<UserFile> fileList = selectFileTreeListLikeFilePath(filePath, userId);
             for (int i = 0; i < fileList.size(); i++) {
                 UserFile userFileTemp = fileList.get(i);
-                EXECUTOR.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        LambdaUpdateWrapper<UserFile> updateWrapper = new LambdaUpdateWrapper<>();
-                        updateWrapper.set(UserFile::getDeleteTag, 1)
-                            .set(UserFile::getDeleteTime, DateUtil.getCurrentTime())
-                            .set(UserFile::getDeleteBatchNum, deleteBatchNum)
-                            .eq(UserFile::getUserFileId, userFileTemp.getUserFileId())
-                            .eq(UserFile::getDeleteTag, 0);
-                        userFileMapper.update(null, updateWrapper);
-                    }
-                });
+                //标记删除标志
+                LambdaUpdateWrapper<UserFile> updateWrapper = new LambdaUpdateWrapper<>();
+                updateWrapper.set(UserFile::getDeleteTag, 1)
+                    .set(UserFile::getDeleteTime, DateUtil.getCurrentTime())
+                    .set(UserFile::getDeleteBatchNum, deleteBatchNum)
+                    .eq(UserFile::getUserFileId, userFileTemp.getUserFileId())
+                    .eq(UserFile::getDeleteTag, 0);
+                userFileMapper.update(null, updateWrapper);
+
             }
-        }).start();
+        });
     }
 
     @Override
-    public List<UserFile> selectFilePathTreeByUserId(Long userId) { LambdaQueryWrapper<UserFile> lambdaQueryWrapper = new LambdaQueryWrapper<>();
+    public List<UserFile> selectFilePathTreeByUserId(Long userId) {
+        LambdaQueryWrapper<UserFile> lambdaQueryWrapper = new LambdaQueryWrapper<>();
         lambdaQueryWrapper.eq(UserFile::getUserId, userId)
             .eq(UserFile::getIsDir, 1)
-            .eq(UserFile::getDeleteTag,0);
+            .eq(UserFile::getDeleteTag, 0);
         return userFileMapper.selectList(lambdaQueryWrapper);
     }
 
     @Override
-    public void updateFilepathByFilepath(String oldfilePath, String newfilePath, String fileName, String extendName, Long userId) {
-        if ("null".equals(extendName)){
+    public void updateFilepathByFilepath(String oldfilePath, String newfilePath, String fileName, String extendName,
+        Long userId) {
+        if ("null".equals(extendName)) {
             extendName = null;
         }
 
@@ -222,13 +226,13 @@ public class UserFileServiceImpl extends ServiceImpl<UserFileMapper, UserFile> i
 
     @Override
     public void replaceUserFilePath(String filePath, String oldFilePath, Long userId) {
-        userFileMapper.replaceFilePath(filePath,oldFilePath,userId);
+        userFileMapper.replaceFilePath(filePath, oldFilePath, userId);
     }
 
     @Override
-    public List<UserFileListVO> searchFile(Long userId,String searchText, Long currentPage, Long pageCount) {
+    public List<UserFileListVO> searchFile(Long userId, String searchText, Long currentPage, Long pageCount) {
         Long beginCount = (currentPage - 1) * pageCount;
-        List<UserFileListVO> list = userFileMapper.searchFile(userId,searchText, beginCount, pageCount);
+        List<UserFileListVO> list = userFileMapper.searchFile(userId, searchText, beginCount, pageCount);
         return list;
     }
 }

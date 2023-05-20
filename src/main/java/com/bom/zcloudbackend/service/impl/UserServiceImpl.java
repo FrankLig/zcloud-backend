@@ -41,7 +41,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String password = user.getPassword();
         String username = user.getUsername();
 
-
         if (!StringUtils.hasLength(password)) {
             return RespResult.fail().message("密码不能为为空");
         }
@@ -52,7 +51,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             return RespResult.fail().message("用户名已存在");
         }
 
-
+        //生成盐值
         String salt = UUID.randomUUID().toString().replace("-", "").substring(15);
         String ps = password + salt;
         String newPassword = DigestUtils.md5DigestAsHex(ps.getBytes());
@@ -70,6 +69,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setPassword(newPassword);
         user.setRegisterTime(DateUtil.getCurrentTime());
 
+        //新建用户
         int result = userMapper.insert(user);
         if (result == 1) {
             return RespResult.success();
@@ -106,6 +106,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String password = user.getPassword();
 
         LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+        //查询用户
         wrapper.eq(User::getUsername, username);
         User saveUser = userMapper.selectOne(wrapper);
         String salt = saveUser.getSalt();

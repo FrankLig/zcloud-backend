@@ -60,23 +60,26 @@ public class AsyncTaskUtil {
      */
     public Future<String> deleteUserFile(Long userFileId) {
         UserFile userFile = userFileService.getById(userFileId);
+//        System.out.println(userFile);
         if (userFile.getIsDir() == 1) {
             LambdaQueryWrapper<UserFile> userFileLambdaQueryWrapper = new LambdaQueryWrapper<>();
             userFileLambdaQueryWrapper.eq(UserFile::getDeleteBatchNum, userFile.getDeleteBatchNum());
             List<UserFile> list = userFileService.list(userFileLambdaQueryWrapper);
-            for (UserFile file : list) {
-                Long filePointCount = getFilePointCount(file.getFileId());
-                if (filePointCount != null && file.getIsDir() == 0) {
-                    File fileBean = fileMapper.selectById(file.getFileId());
+//            System.out.println("------11111");
+            System.out.println(list);
+            for (UserFile userfile : list) {
+                Long filePointCount = getFilePointCount(userfile.getFileId());
+                if (filePointCount != null && userfile.getIsDir() == 0) {
+                    File fileBean = fileMapper.selectById(userfile.getFileId());
                     try {
-                        fileTransferService.deleteFile(fileBean);
                         fileMapper.deleteById(fileBean.getFileId());
-                        System.out.println("删除userFile记录---------------");
-                        userFileMapper.deleteById(file.getUserFileId());
+                        fileTransferService.deleteFile(fileBean);
                     } catch (Exception e) {
                         log.error("删除本地文件失败" + JSON.toJSONString(fileBean));
                     }
                 }
+                System.out.println("删除userFile记录---------------");
+                userFileMapper.deleteById(userfile.getUserFileId());
             }
         } else {
             System.out.println("删除本地1");
@@ -86,13 +89,14 @@ public class AsyncTaskUtil {
                 System.out.println("删除本地2");
                 File fileBean = fileMapper.selectById(userFile.getFileId());
                 try {
+                    //成功删除依然报错？
                     fileTransferService.deleteFile(fileBean);
-                    fileMapper.deleteById(fileBean.getFileId());
-                    System.out.println("删除userFile记录---------------");
-                    userFileMapper.deleteById(userFile.getUserFileId());
                 } catch (Exception e) {
                     log.error("删除本地文件失败：" + JSON.toJSONString(fileBean));
                 }
+                fileMapper.deleteById(fileBean.getFileId());
+                System.out.println("删除userFile记录---------------");
+                userFileMapper.deleteById(userFile.getUserFileId());
             }
         }
         return new AsyncResult<>("deleteUserFile");

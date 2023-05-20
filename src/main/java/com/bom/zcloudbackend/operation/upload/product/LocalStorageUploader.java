@@ -153,7 +153,7 @@ public class LocalStorageUploader extends BaseUploader {
         //关闭文件
         raf.close();
 
-        //判断是否完成文件的传输并进行校验与重命名
+        //判断是否完成文件的传输并进行校验
         boolean isComplete = checkUploadStatus(uploadFile, confFile);
 
         //文件上传完成
